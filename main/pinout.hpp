@@ -1,0 +1,13 @@
+#ifndef AGRO_MESH_PINOUT_HPP__
+#define AGRO_MESH_PINOUT_HPP__
+
+#define ONBOARD_LED			GPIO_NUM_2
+
+#define I2C_SCA				GPIO_NUM_0
+#define I2C_SCL				GPIO_NUM_4
+
+#define TRIAC_OUTPUT1		GPIO_NUM_19
+
+#define DS18B20_DATA		GPIO_NUM_17
+
+#endif /* AGRO_MESH_PINOUT_HPP__ */

@@ -1,0 +1,63 @@
+menu "Print Debug"
+    config PRINT_CHIP_INFO_LOG_LEVEL
+        bool "Chip info log"
+        default y
+        help
+            Habilitar log para print_chip_info
+        
+	config PRINT_WIFI_INFO_LOG_LEVEL
+        bool "Wifi info log"
+        default y
+        help
+            Habilitar log para print_wifi_info
+            
+	config PRINT_SYSTEM_INFO_LOG_LEVEL
+	    bool "System info log"
+	    default y
+	    help
+	        Habilitar log para print_system_info
+	        
+	config PRINT_FREERTOS_INFO_LOG_LEVEL
+	    bool "FreeRTOS info log"
+	    default y
+	    help
+	        Habilitar log para print_freertos_info
+
+	config PRINT_IR_INFO_LOG_LEVEL
+		    bool "IR info log"
+		    default y
+		    help
+		        Habilitar log para print_ir_info
+	  
+  	config PRINT_COAP_INFO_LOG_LEVEL
+	    bool "CoAP info log"
+	    default y
+	    help
+	        Habilitar log para print_coap_info   	   
+	        
+  	config PRINT_PARTITION_INFO_LOG_LEVEL
+	    bool "Partition info log"
+	    default y
+	    help
+	        Habilitar log para print_partition_info     
+	        
+   	config PRINT_TIME_INFO_LOG_LEVEL 
+	    bool "Time info log"
+	    default y
+	    help
+	        Habilitar log para print_time_info
+	        
+	config DEFAULT_TIME_REPRESATITION
+		string "Default time representation (strftime func)"
+		default "%F %T %w %Z"
+		depends on PRINT_TIME_INFO_LOG_LEVEL
+		help
+			Representacao padrao do tempo
+			Referencia: http://www.cplusplus.com/reference/ctime/strftime/
+	        
+	config PRINT_TYPES_INFO_LOG_LEVEL
+		bool "Types info log"
+		    default y
+		    help
+		        Habilitar log para print_types_info
+endmenu

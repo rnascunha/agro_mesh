@@ -1,0 +1,18 @@
+menu "BME280"
+	config BME280_FLOAT_ENABLE
+		bool "Use output as float point"
+		default y
+		help
+			Use output as double precision:
+			- °C for temperature
+			- % relative humidity
+			- Pascal for pressure
+
+	config BME280_64BIT_ENABLE
+		bool "Use 64bit precision to calculate pression"
+		default y
+		depends on !BME280_FLOAT_ENABLE
+		help
+			Pressure output is 100 * Pascal, if enable, and Pascal if not enable
+
+endmenu # BME280
