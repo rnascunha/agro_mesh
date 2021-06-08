@@ -3,11 +3,14 @@
 
 #define ONBOARD_LED			GPIO_NUM_2
 
-#define I2C_SCA				GPIO_NUM_0
+#define I2C_SDA				GPIO_NUM_0
 #define I2C_SCL				GPIO_NUM_4
 
 #define TRIAC_OUTPUT1		GPIO_NUM_19
 
 #define DS18B20_DATA		GPIO_NUM_17
+
+#define WATER_LEVEL4		GPIO_NUM_27
+#define WATER_LEVEL_ADC4	ADC2_CHANNEL_7
 
 #endif /* AGRO_MESH_PINOUT_HPP__ */
