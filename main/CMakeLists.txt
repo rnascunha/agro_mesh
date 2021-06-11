@@ -3,6 +3,7 @@ set(COMPONENT_REQUIRES )
 set(COMPONENT_PRIV_REQUIRES )
 
 set(COMPONENT_SRCS message.cpp init_io.cpp main.cpp)
+#set(COMPONENT_SRCS io_test.cpp)
 
 set(COMPONENT_ADD_INCLUDEDIRS "")
 
