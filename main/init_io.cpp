@@ -19,6 +19,14 @@ OneWire onewire(&gpio_sensor);
 Dallas_Temperature temp_sensor(&onewire);
 
 GPIO_Basic led(ONBOARD_LED), out1(AC_LOAD1);
+GPIO_Basic water_level[]{
+		GPIO_Basic{WATER_LEVEL1},
+		GPIO_Basic{WATER_LEVEL2},
+		GPIO_Basic{WATER_LEVEL3},
+		GPIO_Basic{WATER_LEVEL4}
+};
+
+//const std::size_t water_level_count = sizeof(water_level) / sizeof(water_level[0]);
 
 I2C_Master i2c(I2C_NUM_0, I2C_SCL, I2C_SDA, I2C_FAST_SPEED_HZ);
 DS3231 rtc(&i2c);

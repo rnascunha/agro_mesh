@@ -32,21 +32,26 @@ extern engine::resource_node res_led;
 extern engine::resource_node res_net_rssi;
 extern engine::resource_node res_net_waive_root;
 extern engine::resource_node res_vesion;
+extern engine::resource_node res_sensor_water_level;
+extern engine::resource_node res_reboot;
+extern engine::resource_node res_reset_reason;
 
 engine::resource_node res_sensor{"sensor"};
 engine::resource_node res_net{"net"};
 
 void init_coap_resources() noexcept
 {
-	ESP_LOGI(COAP_TAG, "Initilializing CoAP Engine");
+	ESP_LOGI(COAP_TAG, "Initializing CoAP Engine");
 
 	ESP_LOGD(COAP_TAG, "Adding resources...");
 
-	res_sensor.add_child(res_sensor_temp);
+	res_sensor.add_child(res_sensor_temp, res_sensor_water_level);
 	res_net.add_child(res_net_rssi, res_net_waive_root);
 
 	coap_engine.root_node().add_child(
 				res_uptime,
+				res_reboot,
+				res_reset_reason,
 				res_sensor,
 				res_rtc_time,
 				res_ac_load1,
