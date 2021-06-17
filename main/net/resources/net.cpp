@@ -33,7 +33,7 @@ static void get_rssi_handler(engine::message const& request,
 static void put_waive_root_handler(engine::message const&,
 								engine::response& response, void*) noexcept
 {
-	ESP_LOGD(RESOURCE_TAG, "Called get net waive root handler");
+	ESP_LOGD(RESOURCE_TAG, "Called put net waive root handler");
 
 	if(!esp_mesh_is_root())
 	{
@@ -52,9 +52,32 @@ static void put_waive_root_handler(engine::message const&,
 			.serialize();
 }
 
+static void get_parent_handler(engine::message const&,
+								engine::response& response, void*) noexcept
+{
+	ESP_LOGD(RESOURCE_TAG, "Called get net parent handler");
+
+	mesh_addr_t daddy{};
+	esp_mesh_get_parent_bssid(&daddy);
+
+	CoAP::Message::content_format format = CoAP::Message::content_format::text_plain;
+	CoAP::Message::Option::node content{format};
+
+	char buffer[20];
+	snprintf(buffer, 20, MACSTR, MAC2STR(daddy.addr));
+
+	response
+		.code(CoAP::Message::code::content)
+		.add_option(content)
+		.payload(buffer)
+		.serialize();
+}
+
 engine::resource_node res_net_rssi{"rssi",
 								get_rssi_handler};
 engine::resource_node res_net_waive_root{"waive",
 								static_cast<engine::resource::callback_t*>(nullptr),
 								nullptr,
 								put_waive_root_handler};
+engine::resource_node res_net_parent{"parent",
+								get_parent_handler};

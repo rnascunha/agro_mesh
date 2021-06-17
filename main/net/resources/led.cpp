@@ -62,7 +62,7 @@ static void put_led_handler(engine::message const& request,
 	 * Payload
 	 */
 	char buf[2];
-	snprintf(buf, 2, "%c", led.read() + '0');
+	snprintf(buf, 2, "%c", (led.read() ? 0 : 1)  + '0');
 
 	response
 		.code(CoAP::Message::code::changed)

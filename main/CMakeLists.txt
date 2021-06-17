@@ -6,6 +6,7 @@ set(RESOURCE_LIST	${RESOURCE_PATH}/ac_load.cpp
 					${RESOURCE_PATH}/led.cpp
 					${RESOURCE_PATH}/net.cpp
 					${RESOURCE_PATH}/version.cpp
+					${RESOURCE_PATH}/discovery.cpp
 					)	
 
 idf_component_register(SRCS agro_mesh_main.cpp
