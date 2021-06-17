@@ -15,8 +15,6 @@
 #define I2C_FAST_SPEED_HZ	400000
 #define I2C_NORMAL_SPPED_HZ	100000
 
-#define I2C_PROBE_ADDR_FUNC
-
 class I2C_Master{
 	public:
 		I2C_Master(i2c_port_t port, gpio_num_t scl, gpio_num_t sda, uint32_t freq, bool pull_up = false);
@@ -36,9 +34,8 @@ class I2C_Master{
 		int read(uint8_t slave_addr, uint8_t reg, uint8_t* data, size_t len, bool ack_check);
 		int read(uint8_t slave_addr, uint8_t reg, uint8_t* data, bool ack_check = true);
 
-#ifdef I2C_PROBE_ADDR_FUNC
+		bool probe(uint8_t addr) noexcept;
 		uint8_t probe_addr(uint8_t addr_init = 0);
-#endif /* I2C_PROBE_ADDR_FUNC */
 	protected:
 		i2c_port_t	port;
 };

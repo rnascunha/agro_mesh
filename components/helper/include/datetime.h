@@ -2,6 +2,7 @@
 #define __DATETIME_H__
 
 #include <stdio.h>
+#include <stdint.h>
 
 typedef enum {
 	FORMAT_24H = 0,

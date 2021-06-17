@@ -1,4 +1,4 @@
-menu "Mesh Configuration"
+menu "Agro Mesh Configuration"
 	config MESH_ROUTER_SSID
         string "Router SSID"
         default "ROUTER_SSID"
@@ -12,7 +12,7 @@ menu "Mesh Configuration"
             Router password.
 
     choice
-        bool "Mesh AP Authentication Mode"
+        bool "AP Authentication Mode"
         default WIFI_AUTH_WPA2_PSK
         help
             Authentication mode.
@@ -27,164 +27,67 @@ menu "Mesh Configuration"
             bool "WIFI_AUTH_WPA_WPA2_PSK"
     endchoice
 
-    config MESH_AP_AUTHMODE
+    config AP_AUTHMODE
         int
         default 0 if WIFI_AUTH_OPEN
         default 2 if WIFI_AUTH_WPA_PSK
         default 3 if WIFI_AUTH_WPA2_PSK
         default 4 if WIFI_AUTH_WPA_WPA2_PSK
         help
-            Mesh AP authentication mode.
-
-    config MESH_BR_SERVER_IP
-    	string "TCP Server IP"
-    	default "192.168.0.9"
-    	help
-    		Socket server address that the mesh border router will connect. It MUST be a valid IP.
+            AP authentication mode.
             
-    config MESH_BR_SERVER_PORT
-    	int "TCP Server Port"
+    choice
+        bool "Server endpoint type"
+        default ENDPOINT_IPv4
+        help
+            Choose endpoint type.
+
+        config ENDPOINT_IPv4
+            bool "IPv4"
+        config ENDPOINT_IPv6
+            bool "IPv6"
+    endchoice
+
+    config ENDPOINT_TYPE
+        int
+        default 0 if ENDPOINT_IPv4
+        default 1 if ENDPOINT_IPv6
+        help
+            Choose endpoint type.
+            
+	config SERVER_ADDR
+		string "Server Address"
+		default "192.168.0.9"
+		help
+			IP address of the server that will receive data. It must be a valid
+			IP addr (valid IPv4 or IPv6 as set at Endpoint type option)
+            
+    config SERVER_PORT
+    	int "Server Port"
     	range 1 65535
-    	default 8089
+    	default 5683
     	help
-            Socket server port that the mesh border router will connect.
+            Server port that the device will connect.
             
-    config MESH_TODS_ENABLE
-    	bool "Enable DS (external target)"
-    	default n
+    config ROOT_SERVER_PORT
+    	int "Root Server Port"
+    	range 1 65535
+    	default 5683
     	help
-    		Enable external target set by the node.
+            Port that the root node UDP connection will bind.
+            
+	config BUFFER_TRANSACTION
+    	int "Packet size"
+    	range 64 1024
+    	default 512
+    	help
+    		Max packet size supported by a CoAP transaction
     		
-   	config MESH_ALLOW_ROOT_CONFLICT
-   		bool "Enable root conflict"
-   		default n
-   		help
-   			Enable more than one device to be root of the mesh network.
-            
-        choice
-        bool "Mesh Topology"
-        default MESH_TOPO_TREE
-        help
-            Mesh Network Topology.
-
-        config MESH_TOPO_TREE
-            bool "MESH_TOPO_TREE"
-        config MESH_TOPO_CHAIN
-            bool "MESH_TOPO_CHAIN"
-    endchoice
-
-    config MESH_TOPOLOGY
-        int
-        default 0 if MESH_TOPO_TREE
-        default 1 if MESH_TOPO_CHAIN
-        help
-            Mesh Network Topology.        
-            
-    config MESH_MAX_LAYER
-        int "Mesh Max Layer"
-        range 1 25 if MESH_TOPO_TREE
-        range 1 1000 if MESH_TOPO_CHAIN
-        default 6
-        help
-            Max layer allowed in mesh network.
-
-    config MESH_CHANNEL
-        int "channel"
-        range 0 14
-        default 0
-        help
-            mesh network channel. 
-
-    config MESH_ENABLE_PS
-        bool "Enable mesh PS (power save) function"
-        default n
-        help
-            Enable/Disable Power Save function.
-
-    choice
-        bool "Mesh PS device duty cycle type"
-        depends on MESH_ENABLE_PS
-        default MESH_PS_DEV_DUTY_TYPE_REQUEST
-        help
-            Mesh PS device duty cycle type.
-
-        config MESH_PS_DEV_DUTY_TYPE_REQUEST
-            bool "MESH_PS_DEV_DUTY_TYPE_REQUEST"
-        config MESH_PS_DEV_DUTY_TYPE_DEMAND
-            bool "MESH_PS_DEV_DUTY_TYPE_DEMAND"
-    endchoice
-
-    config MESH_PS_DEV_DUTY_TYPE
-        int
-        depends on MESH_ENABLE_PS
-        default 1 if MESH_PS_DEV_DUTY_TYPE_REQUEST
-        default 4 if MESH_PS_DEV_DUTY_TYPE_DEMAND
-        help
-            Mesh PS device duty cycle type.
-
-    config MESH_PS_DEV_DUTY
-        int "Mesh PS device duty cycle"
-        depends on MESH_ENABLE_PS
-        range 1 100
-        default 12
-        help
-            Mesh PS device duty cycle.
-
-    config MESH_PS_NWK_DUTY
-        int "Mesh PS network duty cycle"
-        depends on MESH_ENABLE_PS
-        range 1 100
-        default 12
-        help
-            Mesh PS network duty cycle.
-
-    config MESH_PS_NWK_DUTY_DURATION
-        int "Mesh PS network duty cycle duration (unit: minutes)"
-        depends on MESH_ENABLE_PS
-        range -1 100
-        default -1
-        help
-            Mesh PS network duty cycle duration.
-
-    choice
-        bool "Mesh PS network duty cycle rule"
-        depends on MESH_ENABLE_PS
-        default MESH_PS_NETWORK_DUTY_APPLIED_ENTIRE
-        help
-            Mesh PS network duty cycle rule.
-
-        config MESH_PS_NETWORK_DUTY_APPLIED_ENTIRE
-            bool "MESH_PS_NETWORK_DUTY_APPLIED_ENTIRE"
-        config MESH_PS_NETWORK_DUTY_APPLIED_UPLINK
-            bool "MESH_PS_NETWORK_DUTY_APPLIED_UPLINK"
-    endchoice
-
-    config MESH_PS_NWK_DUTY_RULE
-        int
-        depends on MESH_ENABLE_PS
-        default 0 if MESH_PS_NETWORK_DUTY_APPLIED_ENTIRE
-        default 1 if MESH_PS_NETWORK_DUTY_APPLIED_UPLINK
-        help
-            Mesh PS network duty cycle rule.
-
-    config MESH_AP_PASSWD
-        string "Mesh AP Password"
-        default "MAP_PASSWD"
-        help
-            Mesh AP password.
-
-    config MESH_AP_CONNECTIONS
-        int "Mesh AP Connections"
-        range 1 10
-        default 6
-        help
-            The number of stations allowed to connect in.
-
-    config MESH_ROUTE_TABLE_SIZE
-        int "Mesh Routing Table Size"
-        range 1 300
-        default 50
-        help
-            The number of devices over the network(max: 300).
+    config TRANSACTION_NUM
+    	int "Number of transactions"
+    	range 1 50
+    	default 4
+    	help
+    		Number of simultaneous transactions that CoAP engine can hold
 endmenu
 

@@ -152,7 +152,13 @@ int I2C_Master::read(uint8_t slave_addr, uint8_t reg, uint8_t* data, bool ack_ch
 	return I2C_ERR_OK;
 }
 
-#ifdef I2C_PROBE_ADDR_FUNC
+bool I2C_Master::probe(uint8_t addr) noexcept
+{
+	uint8_t data;
+	if(read(addr, 0x00, &data) > 0)
+		return true;
+	return false;
+}
 
 uint8_t I2C_Master::probe_addr(uint8_t addr_init /* = 0 */){
 	uint8_t data;
@@ -165,4 +171,3 @@ uint8_t I2C_Master::probe_addr(uint8_t addr_init /* = 0 */){
 	return 0xFF;
 }
 
-#endif /* I2C_PROBE_ADDR_FUNC */

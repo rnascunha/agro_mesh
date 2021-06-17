@@ -85,6 +85,8 @@ typedef enum DS3231Alarm2Config{
 
 class DS3231{
 	public:
+		static constexpr const uint8_t reg = 0b01101000;
+
 		DS3231(I2C_Master *i2c, uint8_t mode = FORMAT_24H);
 
 		void begin(void);

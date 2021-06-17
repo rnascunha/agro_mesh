@@ -1,3 +1,6 @@
+#include <cstdint>
+#include "esp_log.h"
+
 #include "gpio.h"
 
 #include "i2c_master.h"
@@ -9,17 +12,29 @@
 
 #include "pinout.hpp"
 
+#define TAG		"AGRO_IO"
+
 GPIO_Basic gpio_sensor(DS18B20_DATA);
 OneWire onewire(&gpio_sensor);
 Dallas_Temperature temp_sensor(&onewire);
 
-GPIO_Basic led(ONBOARD_LED), out1(TRIAC_OUTPUT1);
+GPIO_Basic led(ONBOARD_LED), out1(AC_LOAD1);
 
 I2C_Master i2c(I2C_NUM_0, I2C_SCL, I2C_SDA, I2C_FAST_SPEED_HZ);
 DS3231 rtc(&i2c);
 
+bool rtc_present = false;
+std::uint8_t temp_sensor_count = false;
+
 void init_io() noexcept
 {
+	ESP_LOGI(TAG, "Initializing IOs");
+
+	temp_sensor.begin();
+	temp_sensor_count = temp_sensor.getDeviceCount();
+
+	ESP_LOGI(TAG, "Temp sensors count: %u", temp_sensor_count);
+
 	led.mode(GPIO_MODE_OUTPUT);
 	out1.mode(GPIO_MODE_OUTPUT);
 
@@ -28,10 +43,8 @@ void init_io() noexcept
 
 	i2c.init();
 
-	rtc.begin();
+	rtc_present = i2c.probe(DS3231::reg);
+	if(rtc_present) rtc.begin();
 
-	//Hard code time
-	DateTime dt;
-	dt.setUnixTime(1623109458);
-	rtc.setDateTime(&dt);
+	ESP_LOGI(TAG, "RTC present: %s", rtc_present ? "true" : "false");
 }

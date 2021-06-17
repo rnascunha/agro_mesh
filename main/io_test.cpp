@@ -33,7 +33,7 @@ extern "C" void app_main(void)
 	Dallas_Temperature temp_sensor(&onewire);
 
 	GPIO_Basic led(ONBOARD_LED, GPIO_MODE_OUTPUT),
-			out1(TRIAC_OUTPUT1, GPIO_MODE_OUTPUT);
+			out1(AC_LOAD1, GPIO_MODE_OUTPUT);
 	GPIO_Basic wl4(WATER_LEVEL4, GPIO_MODE_INPUT);
 
 	led.write(0);

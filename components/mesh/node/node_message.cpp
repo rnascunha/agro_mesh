@@ -22,6 +22,10 @@ static size_t make_status(uint8_t* buf);
 static size_t make_full_config(uint8_t* buf);
 static size_t make_info(uint8_t* buf, const char* info);
 
+#ifndef CONFIG_MESH_ROUTE_TABLE_SIZE
+#define CONFIG_MESH_ROUTE_TABLE_SIZE	50
+#endif /* CONFIG_MESH_ROUTE_TABLE_SIZE */
+
 void __attribute__((weak))
 node_fromds_message(mesh_addr_t* from, mesh_data_t* data, void* arg)
 {
