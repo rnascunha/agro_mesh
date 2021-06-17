@@ -1,0 +1,3 @@
+[submodule "components/protocols/coap-te"]
+	path = components/protocols/coap-te
+	url = https://github.com/rnascunha/coap-te
