@@ -81,7 +81,7 @@ void DateTime::setDateTime(uint16_t year, uint8_t month,uint16_t day,
 
 void DateTime::setUnixTime(uint32_t unixTime)
 {
-	unsigned long day,mins,secs,year,leap;
+	unsigned long day, mins, secs, year, leap;
 
 	day = unixTime/(24L*60*60);
 	secs = unixTime % (24L*60*60);
@@ -93,10 +93,10 @@ void DateTime::setUnixTime(uint32_t unixTime)
 	_year = year + 1970;
 	leap = !(_year & 3);
 	day -= ((year * 1461) + 1) / 4;
-	_day = day;
+//	_day = day;
 	day += (day > 58 + leap) ? ((leap) ? 1 : 2) : 0;
-	_month = ((day * 12) + 6)/367;
-	_day = day + 1 - ((_month * 367) + 5)/12;
+	_month = ((day * 12) + 6)/367 + 1;
+	_day = day + 1 - (((_month - 1) * 367) + 5)/12;
 }
 
 uint16_t DateTime::getYear(void)
