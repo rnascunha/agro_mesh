@@ -13,6 +13,8 @@
 #include "freertos/task.h"
 
 #include "tasks.hpp"
+#include "coap_engine.hpp"
+#include "messages/send.hpp"
 
 #define TAG							"AGRO_MESH"
 
@@ -21,18 +23,35 @@
 static const uint8_t MESH_ID[6] = { 0x77, 0x77, 0x77, 0x77, 0x77, 0x77};
 
 static esp_netif_t *netif_sta = NULL;
+static bool ds_state_ = false;
 extern bool coap_engine_started;
 
-esp_err_t coap_mesh_start(void)
+extern engine coap_engine;
+
+esp_err_t coap_mesh_start(void) noexcept
 {
     if (!coap_engine_started)
     {
     	coap_engine_started = true;
 
         xTaskCreate(coap_te_engine, "MPRX", 3072, NULL, 5, NULL);
-#ifdef JUST_EXAMPLE_NEVER_RUN
         xTaskCreate(coap_send_main, "MPTX", 3072, NULL, 5, NULL);
-#endif /* JUST_EXAMPLE_NEVER_RUN */
+
+        CoAP::Error ec;
+        send_full_config(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+        if(ec)
+        {
+        	ESP_LOGE(TAG, "Send full error[%d/%s]", ec.value(), ec.message());
+        }
+    }
+    else
+    {
+    	CoAP::Error ec;
+		send_route(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+		if(ec)
+		{
+			ESP_LOGE(TAG, "Send route[%d/%s]", ec.value(), ec.message());
+		}
     }
     return ESP_OK;
 }
@@ -42,8 +61,8 @@ esp_err_t coap_mesh_start(void)
  *
  * When receive a IP (i.e, is root), initalize proxy forward task
  */
-void ip_event_handler(void *arg, esp_event_base_t event_base,
-                      int32_t event_id, void *event_data)
+static void ip_event_handler(void *arg, esp_event_base_t event_base,
+                      int32_t event_id, void *event_data) noexcept
 {
     ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
     ESP_LOGI(TAG, "<IP_EVENT_STA_GOT_IP>IP:" IPSTR, IP2STR(&event->ip_info.ip));
@@ -54,17 +73,46 @@ void ip_event_handler(void *arg, esp_event_base_t event_base,
 /**
  * Mesh event handler.
  */
-void mesh_event_handler(void *arg, esp_event_base_t event_base,
-                        int32_t event_id, void *event_data)
+static void mesh_event_handler(void *arg, esp_event_base_t event_base,
+                        int32_t event_id, void *event_data) noexcept
 {
     switch (event_id)
     {
-		break;
+    	case MESH_EVENT_CHILD_CONNECTED: {
+            mesh_event_child_connected_t *child_connected = (mesh_event_child_connected_t *)event_data;
+            ESP_LOGI(TAG, "<MESH_EVENT_CHILD_CONNECTED>aid:%d, " MACSTR "",
+                     child_connected->aid,
+                     MAC2STR(child_connected->mac));
+
+            CoAP::Error ec;
+            send_route(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+            if(ec)
+			{
+				ESP_LOGE(TAG, "Send route[%d/%s]", ec.value(), ec.message());
+			}
+        }
+        break;
+    	case MESH_EVENT_CHILD_DISCONNECTED: {
+			mesh_event_child_disconnected_t *child_disconnected = (mesh_event_child_disconnected_t *)event_data;
+			ESP_LOGI(TAG, "<MESH_EVENT_CHILD_DISCONNECTED>aid:%d, " MACSTR "",
+					 child_disconnected->aid,
+					 MAC2STR(child_disconnected->mac));
+
+			CoAP::Error ec;
+			send_route(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+			if(ec)
+			{
+				ESP_LOGE(TAG, "Send route[%d/%s]", ec.value(), ec.message());
+			}
+
+		}
+    	break;
 		case MESH_EVENT_PARENT_CONNECTED: {
 			/**
 			 * Initialize tasks and DHCP if root
 			 */
-			if (esp_mesh_is_root()) {
+			if (esp_mesh_is_root())
+			{
 				esp_netif_dhcpc_start(netif_sta);
 			}
 			coap_mesh_start();
@@ -73,6 +121,7 @@ void mesh_event_handler(void *arg, esp_event_base_t event_base,
 		case MESH_EVENT_TODS_STATE: {
 			mesh_event_toDS_state_t *toDs_state = (mesh_event_toDS_state_t *)event_data;
 			ESP_LOGI(TAG, "<MESH_EVENT_TODS_REACHABLE>state:%d", *toDs_state);
+			ds_state_ = *toDs_state ? true : false;
 		}
 		break;
 		default:
@@ -80,6 +129,10 @@ void mesh_event_handler(void *arg, esp_event_base_t event_base,
     }
 }
 
+bool ds_state() noexcept
+{
+	return ds_state_;
+}
 
 void init_mesh() noexcept
 {

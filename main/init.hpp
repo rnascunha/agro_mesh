@@ -5,4 +5,7 @@ void init_io() noexcept;
 void init_mesh() noexcept;
 void init_coap_resources() noexcept;
 
+void coap_send_main(void*) noexcept;
+bool ds_state() noexcept;
+
 #endif /* AGRO_MESH_INIT_HPP__ */

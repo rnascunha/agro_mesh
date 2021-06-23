@@ -3,5 +3,6 @@
 
 void coap_forward_proxy(void*) noexcept;
 void coap_te_engine(void*) noexcept;
+void coap_send_main(void*) noexcept;
 
 #endif /* AGRO_MESH_TASKS_HPP__ */

@@ -5,7 +5,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include "esp_log.h"
 #include "esp_mesh.h"
+
+#include "messages/send.hpp"
 
 using namespace CoAP::Log;
 
@@ -26,7 +29,7 @@ udp_conn::endpoint ep_server{CONFIG_SERVER_ADDR, CONFIG_SERVER_PORT, ecp};
 
 extern engine coap_engine;
 
-void coap_te_engine(void*)
+void coap_te_engine(void*) noexcept
 {
 	ESP_LOGI(TAG, "CoAP Engine run init.");
 
@@ -45,7 +48,7 @@ void coap_te_engine(void*)
  *
  * It will open a UDP connection and bind to the port configured.
  */
-void coap_forward_proxy(void*)
+void coap_forward_proxy(void*) noexcept
 {
 	ESP_LOGD(TAG, "Proxy forwaring task init");
 
@@ -107,73 +110,68 @@ void coap_forward_proxy(void*)
 	vTaskDelete(NULL);
 }
 
-
-#ifdef JUST_EXAMPLE_NEVER_RUN
-/**
- * Callback function of transaction
- */
-void request_cb(void const* trans, CoAP::Message::message const* response, void*) noexcept
-{
-	CoAP::Log::debug("Request callback called...");
-
-	auto const* t = static_cast<engine::transaction_t const*>(trans);
-	CoAP::Log::status("Status: %s", CoAP::Debug::transaction_status_string(t->status()));
-	if(response)
-	{
-		char ep_addr[20];
-		std::printf("Response received! %s\n", t->endpoint().address(ep_addr, 20));
-		CoAP::Debug::print_message_string(*response);
-
-		/**
-		 * Checking if we received a empty acknowledgment. This means that we
-		 * are going to receive our response in a separated message, so we can
-		 * not go out of the check loop at main.
-		 */
-		if(response->mtype == CoAP::Message::type::acknowledgment &&
-			response->mcode == CoAP::Message::code::empty)
-		{
-			return;
-		}
-	}
-	else
-	{
-		/**
-		 * Function timeout or transaction was cancelled
-		 */
-		CoAP::Log::status("Response NOT received");
-	}
-}
+///**
+// * Callback function of transaction
+// */
+//void request_cb(void const* trans, CoAP::Message::message const* response, void*) noexcept
+//{
+//	CoAP::Log::debug("Request callback called...");
+//
+//	auto const* t = static_cast<engine::transaction_t const*>(trans);
+//	CoAP::Log::status("Status: %s", CoAP::Debug::transaction_status_string(t->status()));
+//	if(response)
+//	{
+//		char ep_addr[20];
+//		std::printf("Response received! %s\n", t->endpoint().address(ep_addr, 20));
+//		CoAP::Debug::print_message_string(*response);
+//
+//		/**
+//		 * Checking if we received a empty acknowledgment. This means that we
+//		 * are going to receive our response in a separated message, so we can
+//		 * not go out of the check loop at main.
+//		 */
+//		if(response->mtype == CoAP::Message::type::acknowledgment &&
+//			response->mcode == CoAP::Message::code::empty)
+//		{
+//			return;
+//		}
+//	}
+//	else
+//	{
+//		/**
+//		 * Function timeout or transaction was cancelled
+//		 */
+//		CoAP::Log::status("Response NOT received");
+//	}
+//}
 
 /**
  * Example on how to initiate a request to a external network
  */
-void coap_send_main(void*)
+void coap_send_main(void*) noexcept
 {
-	/**
-	 * Initialing a dummy endpoint
-	 *
-	 * Must be any value different from all 0's (the address doesn't matter as
-	 * it always forward to the same address);
-	 */
-	mesh_addr_t addr{};
-	addr.mip.port = htons(5683);
-	engine::endpoint ep{addr, CoAP::Port::ESP_Mesh::endpoint_type::to_external};
+	CoAP::Error ec;
+	send_route(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+	if(ec)
+	{
+		ESP_LOGE(TAG, "ERROR sending route [%d/%s]...", ec.value(), ec.message());
+	}
+	ec.clear();
+
+	send_config(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+	if(ec)
+	{
+		ESP_LOGE(TAG, "ERROR sending route [%d/%s]...", ec.value(), ec.message());
+	}
+	ec.clear();
 
 	while(coap_engine_started)
 	{
-		CoAP::Error ec;
-		CoAP::Message::Option::node path_time{CoAP::Message::Option::code::uri_path, "time"};
-
-		engine::request req{ep};
-		req.header(CoAP::Message::type::nonconfirmable, CoAP::Message::code::get)
-					.token("token")
-					.add_option(path_time)
-					.callback(request_cb/*, data */);
-
-		coap_engine.send(req, ec);
+		send_status(coap_engine, CoAP::Message::type::nonconfirmable, ec);
 		if(ec)
 		{
 			ESP_LOGE(TAG, "ERROR sending time request [%d/%s]...", ec.value(), ec.message());
+			ec.clear();
 		}
 		else
 			ESP_LOGI(TAG, "Sending time request...");
@@ -181,4 +179,3 @@ void coap_send_main(void*)
 	}
 	vTaskDelete(NULL);
 }
-#endif /* JUST_EXAMPLE_NEVER_RUN */

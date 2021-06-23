@@ -5,7 +5,7 @@ set(RESOURCE_LIST	${RESOURCE_PATH}/ac_load.cpp
 					${RESOURCE_PATH}/system.cpp
 					${RESOURCE_PATH}/led.cpp
 					${RESOURCE_PATH}/net.cpp
-					${RESOURCE_PATH}/server.cpp
+#					${RESOURCE_PATH}/server.cpp
 					${RESOURCE_PATH}/version.cpp
 					${RESOURCE_PATH}/discovery.cpp
 					)	
@@ -15,9 +15,10 @@ idf_component_register(SRCS agro_mesh_main.cpp
 							net/coap_resources.cpp
 							net/init_mesh.cpp
 							net/tasks.cpp
+							net/messages/make.cpp
 							${RESOURCE_LIST}
 							helper/convert.cpp
-							helper/decompose.cpp
+							#							helper/decompose.cpp
                        INCLUDE_DIRS
                        REQUIRES)
 						
