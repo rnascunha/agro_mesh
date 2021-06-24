@@ -7,7 +7,7 @@ static constexpr const char* status_path = "status";
 static constexpr const char* config_path = "config";
 static constexpr const char* full_config_path = "full_config";
 
-template<typename Engine>
+template<bool RemoveSelf /* = true */, typename Engine>
 std::size_t send_route(Engine& eng, CoAP::Message::type mtype, CoAP::Error ec) noexcept
 {
 	if(mtype != CoAP::Message::type::confirmable
@@ -19,7 +19,7 @@ std::size_t send_route(Engine& eng, CoAP::Message::type mtype, CoAP::Error ec) n
 
 	//Payload
 	std::uint8_t buffer[Engine::packet_size];
-	std::size_t size = make_route(buffer, Engine::packet_size, ec);
+	std::size_t size = make_route<RemoveSelf>(buffer, Engine::packet_size, ec);
 	if(ec) return size;
 
 	//Making dummy endpoint
@@ -102,7 +102,7 @@ std::size_t send_config(Engine& eng, CoAP::Message::type mtype, CoAP::Error ec) 
 	return eng.send(req, ec);
 }
 
-template<typename Engine>
+template<bool RemoveSelf /* = true */, typename Engine>
 std::size_t send_full_config(Engine& eng, CoAP::Message::type mtype, CoAP::Error ec) noexcept
 {
 	if(mtype != CoAP::Message::type::confirmable
@@ -114,7 +114,7 @@ std::size_t send_full_config(Engine& eng, CoAP::Message::type mtype, CoAP::Error
 
 	//Payload
 	std::uint8_t buffer[Engine::packet_size];
-	std::size_t size = make_full_config(buffer, Engine::packet_size, ec);
+	std::size_t size = make_full_config<RemoveSelf>(buffer, Engine::packet_size, ec);
 	if(ec) return size;
 
 	//Making dummy endpoint

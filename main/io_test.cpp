@@ -18,11 +18,7 @@
 
 #include "pinout.hpp"
 
-#include "driver/adc.h"
-
 static const char* TAG = "APP MAIN";
-
-static const adc_bits_width_t width = ADC_WIDTH_BIT_12;
 
 extern "C" void app_main(void)
 {
