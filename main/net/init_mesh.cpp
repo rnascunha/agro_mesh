@@ -26,6 +26,8 @@ static esp_netif_t *netif_sta = NULL;
 static bool ds_state_ = false;
 extern bool coap_engine_started;
 
+static bool init_packets_sended = false;
+
 extern engine coap_engine;
 
 esp_err_t coap_mesh_start(void) noexcept
@@ -36,13 +38,6 @@ esp_err_t coap_mesh_start(void) noexcept
 
         xTaskCreate(coap_te_engine, "MPRX", 3072, NULL, 5, NULL);
         xTaskCreate(coap_send_main, "MPTX", 3072, NULL, 5, NULL);
-
-        CoAP::Error ec;
-        send_full_config(coap_engine, CoAP::Message::type::nonconfirmable, ec);
-        if(ec)
-        {
-        	ESP_LOGE(TAG, "Send full error[%d/%s]", ec.value(), ec.message());
-        }
     }
     else
     {
@@ -54,6 +49,30 @@ esp_err_t coap_mesh_start(void) noexcept
 		}
     }
     return ESP_OK;
+}
+
+static void send_init_packtes()
+{
+	CoAP::Error ec;
+	send_full_config(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+	if(ec)
+	{
+		ESP_LOGE(TAG, "Send full error[%d/%s]", ec.value(), ec.message());
+	}
+	ec.clear();
+
+	send_config(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+	if(ec)
+	{
+		ESP_LOGE(TAG, "ERROR sending config [%d/%s]...", ec.value(), ec.message());
+	}
+	ec.clear();
+
+	send_board_config(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+	if(ec)
+	{
+		ESP_LOGE(TAG, "ERROR sending board config [%d/%s]...", ec.value(), ec.message());
+	}
 }
 
 /**
@@ -122,6 +141,11 @@ static void mesh_event_handler(void *arg, esp_event_base_t event_base,
 			mesh_event_toDS_state_t *toDs_state = (mesh_event_toDS_state_t *)event_data;
 			ESP_LOGI(TAG, "<MESH_EVENT_TODS_REACHABLE>state:%d", *toDs_state);
 			ds_state_ = *toDs_state ? true : false;
+			if(!init_packets_sended && ds_state_)
+			{
+		        send_init_packtes();
+		        init_packets_sended = true;
+			}
 		}
 		break;
 		default:

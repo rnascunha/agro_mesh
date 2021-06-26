@@ -38,6 +38,9 @@ extern engine::resource_node res_ac_load3;
 extern engine::resource_node res_net_rssi;
 extern engine::resource_node res_net_waive_root;
 extern engine::resource_node res_net_parent;
+extern engine::resource_node res_net_config;
+extern engine::resource_node res_net_full_config;
+extern engine::resource_node res_net_route;
 //extern engine::resource_node res_net_server;
 
 extern engine::resource_node res_led;
@@ -60,7 +63,8 @@ void init_coap_resources() noexcept
 
 	res_ac_load.add_child(res_ac_load1, res_ac_load2, res_ac_load3);
 	res_sensor.add_child(res_sensor_temp, res_sensor_water_level);
-	res_net.add_child(res_net_rssi, res_net_waive_root, res_net_parent);//, res_net_server);
+	res_net.add_child(res_net_rssi, res_net_waive_root, res_net_parent,
+						res_net_config, res_net_full_config, res_net_route);//, res_net_server);
 	res_well_knwon.add_child(res_core);
 
 	coap_engine.root_node().add_child(

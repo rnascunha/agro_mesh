@@ -150,28 +150,13 @@ void coap_forward_proxy(void*) noexcept
  */
 void coap_send_main(void*) noexcept
 {
-	CoAP::Error ec;
-	send_route(coap_engine, CoAP::Message::type::nonconfirmable, ec);
-	if(ec)
-	{
-		ESP_LOGE(TAG, "ERROR sending route [%d/%s]...", ec.value(), ec.message());
-	}
-	ec.clear();
-
-	send_config(coap_engine, CoAP::Message::type::nonconfirmable, ec);
-	if(ec)
-	{
-		ESP_LOGE(TAG, "ERROR sending route [%d/%s]...", ec.value(), ec.message());
-	}
-	ec.clear();
-
 	while(coap_engine_started)
 	{
+		CoAP::Error ec;
 		send_status(coap_engine, CoAP::Message::type::nonconfirmable, ec);
 		if(ec)
 		{
 			ESP_LOGE(TAG, "ERROR sending time request [%d/%s]...", ec.value(), ec.message());
-			ec.clear();
 		}
 		else
 			ESP_LOGI(TAG, "Sending time request...");
