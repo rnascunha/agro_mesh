@@ -1,10 +1,22 @@
 #include "make.hpp"
 #include "esp_system.h"
+#include "esp_timer.h"
 #include <cstring>
 #include "../../version.hpp"
 
+#include "dallas_temperature.h"
+#include "datetime.h"
+#include "ds3231.hpp"
+#include "gpio.h"
+
 extern bool rtc_present;
 extern std::uint8_t temp_sensor_count;
+
+extern DS3231 rtc;
+extern Dallas_Temperature temp_sensor;
+extern GPIO_Basic water_level[];
+extern GPIO_Basic ac_load[];
+
 
 config* make_config(config& cfg) noexcept
 {
@@ -56,3 +68,41 @@ std::size_t make_board_config(void* buffer, std::size_t buffer_len,
 	return sizeof(bc) + fw_size + 1 + hw_size;
 }
 
+sensor_data* make_sensor_data(sensor_data& sen) noexcept
+{
+	if(temp_sensor_count > 0)
+		temp_sensor.requestTemperatures();
+	else sen.temp = 0;
+
+	if(rtc_present)
+	{
+		DateTime dt;
+		rtc.getDateTime(&dt);
+		sen.time = dt.getUnixTime();
+	}
+	else
+	{
+		sen.time = static_cast<std::uint32_t>(esp_timer_get_time() / 1000000);
+	}
+
+	if(temp_sensor_count > 0)
+	{
+		sen.temp = temp_sensor.getTempCByIndex(0);
+	}
+
+	sen.wl1 = water_level[0].read();
+	sen.wl2 = water_level[1].read();
+	sen.wl3 = water_level[2].read();
+	sen.wl4 = water_level[3].read();
+
+	sen.ac1 = ac_load[0].read();
+	sen.ac2 = ac_load[1].read();
+	sen.ac3 = ac_load[2].read();
+
+	wifi_ap_record_t ap;
+	esp_wifi_sta_get_ap_info(&ap);
+
+	sen.rssi = ap.rssi;
+
+	return &sen;
+}

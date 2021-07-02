@@ -32,4 +32,18 @@ struct __attribute__((packed)) board_config{
 	std::uint8_t	:6;
 };
 
+struct __attribute__((packed)) sensor_data{
+	std::uint32_t	time;
+	float			temp;
+	std::uint8_t	wl1:1;
+	std::uint8_t	wl2:1;
+	std::uint8_t	wl3:1;
+	std::uint8_t	wl4:1;
+	std::uint8_t	ac1:1;
+	std::uint8_t	ac2:1;
+	std::uint8_t	ac3:1;
+	std::uint8_t	:1;
+	int8_t			rssi;
+};
+
 #endif /* AGRO_MESH_NET_MESSAGES_TYPES_HPP__ */

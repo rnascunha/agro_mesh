@@ -153,14 +153,14 @@ void coap_send_main(void*) noexcept
 	while(coap_engine_started)
 	{
 		CoAP::Error ec;
-		send_status(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+		send_sensor_data(coap_engine, CoAP::Message::type::nonconfirmable, ec);
 		if(ec)
 		{
 			ESP_LOGE(TAG, "ERROR sending time request [%d/%s]...", ec.value(), ec.message());
 		}
 		else
 			ESP_LOGI(TAG, "Sending time request...");
-		vTaskDelay(120 * 1000 / portTICK_RATE_MS);
+		vTaskDelay((5 * 60 * 1000) / portTICK_RATE_MS);
 	}
 	vTaskDelete(NULL);
 }

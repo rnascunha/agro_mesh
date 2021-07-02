@@ -13,6 +13,8 @@ template<bool RemoveSelf = true, typename Engine>
 std::size_t send_full_config(Engine&, CoAP::Message::type, CoAP::Error& ec) noexcept;
 template<typename Engine>
 std::size_t send_board_config(Engine&, CoAP::Message::type, CoAP::Error& ec) noexcept;
+template<typename Engine>
+std::size_t send_sensor_data(Engine&, CoAP::Message::type, CoAP::Error& ec) noexcept;
 
 #include "impl/send_impl.hpp"
 

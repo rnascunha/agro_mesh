@@ -7,6 +7,7 @@ static constexpr const char* status_path = "status";
 static constexpr const char* config_path = "config";
 static constexpr const char* full_config_path = "full_config";
 static constexpr const char* board_path = "board";
+static constexpr const char* sensor_path = "sensor";
 
 template<bool RemoveSelf /* = true */, typename Engine>
 std::size_t send_route(Engine& eng, CoAP::Message::type mtype, CoAP::Error& ec) noexcept
@@ -165,6 +166,36 @@ std::size_t send_board_config(Engine& eng, CoAP::Message::type mtype, CoAP::Erro
 		.add_option(uri_path)
 		.add_option(content_format)
 		.payload(buffer, size);
+
+	return eng.send(req, ec);
+}
+
+template<typename Engine>
+std::size_t send_sensor_data(Engine& eng, CoAP::Message::type mtype, CoAP::Error& ec) noexcept
+{
+	if(mtype != CoAP::Message::type::confirmable
+		&& mtype != CoAP::Message::type::nonconfirmable)
+	{
+		ec = CoAP::errc::type_invalid;
+		return 0;
+	}
+
+	//Payload
+	sensor_data data;
+
+	//Making dummy endpoint
+	mesh_addr_t addr{};
+	addr.mip.port = htons(5683);
+	typename Engine::endpoint ep{addr, CoAP::Port::ESP_Mesh::endpoint_type::to_external};
+	//Making request
+	CoAP::Message::content_format ct{CoAP::Message::content_format::application_octet_stream};
+	CoAP::Message::Option::node uri_path{CoAP::Message::Option::code::uri_path, sensor_path},
+									content_format{ct};
+	typename Engine::request req{ep};
+	req.header(mtype, CoAP::Message::code::put)
+		.add_option(uri_path)
+		.add_option(content_format)
+		.payload(make_sensor_data(data), sizeof(sensor_data));
 
 	return eng.send(req, ec);
 }

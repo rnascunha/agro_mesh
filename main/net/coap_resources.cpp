@@ -51,9 +51,13 @@ extern engine::resource_node res_vesion;
 extern engine::resource_node res_reset_reason;
 extern engine::resource_node res_reboot;
 
+extern engine::resource_node res_packet_sensor;
+extern engine::resource_node res_packet_board;
+
 engine::resource_node res_well_knwon{".well-known"};
 engine::resource_node res_sensor{"sensor"};
 engine::resource_node res_net{"net"};
+engine::resource_node res_packet{"packet"};
 
 void init_coap_resources() noexcept
 {
@@ -66,6 +70,7 @@ void init_coap_resources() noexcept
 	res_net.add_child(res_net_rssi, res_net_waive_root, res_net_parent,
 						res_net_config, res_net_full_config, res_net_route);//, res_net_server);
 	res_well_knwon.add_child(res_core);
+	res_packet.add_child(res_packet_board, res_packet_sensor);
 
 	coap_engine.root_node().add_child(
 				res_uptime,
@@ -77,6 +82,7 @@ void init_coap_resources() noexcept
 				res_led,
 				res_net,
 				res_vesion,
+				res_packet,
 				res_well_knwon);
 }
 
