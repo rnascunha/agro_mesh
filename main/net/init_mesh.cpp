@@ -36,8 +36,9 @@ esp_err_t coap_mesh_start(void) noexcept
     {
     	coap_engine_started = true;
 
-        xTaskCreate(coap_te_engine, "MPRX", 3072, NULL, 5, NULL);
-        xTaskCreate(coap_send_main, "MPTX", 3072, NULL, 5, NULL);
+        xTaskCreate(coap_te_engine, "recv", 3072, NULL, 5, NULL);
+        xTaskCreate(coap_send_main, "send", 3072, NULL, 5, NULL);
+        xTaskCreate(send_async_data, "async", 2048, NULL, 5, NULL);
     }
     else
     {
@@ -73,6 +74,13 @@ static void send_init_packtes()
 	{
 		ESP_LOGE(TAG, "ERROR sending board config [%d/%s]...", ec.value(), ec.message());
 	}
+	ec.clear();
+
+//	request_time(coap_engine, ec);
+//	if(ec)
+//	{
+//		ESP_LOGE(TAG, "ERROR requesting time [%d/%s]...", ec.value(), ec.message());
+//	}
 }
 
 /**

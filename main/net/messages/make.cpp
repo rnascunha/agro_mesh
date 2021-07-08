@@ -1,18 +1,20 @@
 #include "make.hpp"
 #include "esp_system.h"
 #include "esp_timer.h"
+#include "esp_ota_ops.h"
+
 #include <cstring>
 #include "../../version.hpp"
 
 #include "dallas_temperature.h"
-#include "datetime.h"
-#include "ds3231.hpp"
 #include "gpio.h"
+#include "../../types/rtc_time.hpp"
 
-extern bool rtc_present;
+//extern bool rtc_present;
 extern std::uint8_t temp_sensor_count;
 
-extern DS3231 rtc;
+//extern DS3231 rtc;
+extern RTC_Time device_clock;
 extern Dallas_Temperature temp_sensor;
 extern GPIO_Basic water_level[];
 extern GPIO_Basic ac_load[];
@@ -47,7 +49,9 @@ status* make_status(status& sts) noexcept
 std::size_t make_board_config(void* buffer, std::size_t buffer_len,
 				CoAP::Error& ec) noexcept
 {
-	std::size_t fw_size = std::strlen(fw_version),
+	const esp_app_desc_t * desc = esp_ota_get_app_description();
+
+	std::size_t fw_size = std::strlen(desc->version),
 				hw_size = std::strlen(hw_version);
 	if(buffer_len < (sizeof(board_config) + fw_size + 1 + hw_size))
 	{
@@ -56,12 +60,12 @@ std::size_t make_board_config(void* buffer, std::size_t buffer_len,
 	}
 	board_config bc;
 
-	bc.has_rtc = rtc_present ? 1 : 0;
+	bc.has_rtc = device_clock.has_rtc() ? 1 : 0;
 	bc.has_temp_sensor = temp_sensor_count > 0 ? 1 : 0;
 
 	std::uint8_t* bu8 = static_cast<std::uint8_t*>(buffer);
 	std::memcpy(bu8, &bc, sizeof(bc));
-	std::memcpy(bu8 + sizeof(bc), fw_version, fw_size);
+	std::memcpy(bu8 + sizeof(bc), desc->version, fw_size);
 	bu8[sizeof(bc) + fw_size] = '|';
 	std::memcpy(bu8 + sizeof(bc) + 1 + fw_size, hw_version, hw_size);
 
@@ -74,16 +78,7 @@ sensor_data* make_sensor_data(sensor_data& sen) noexcept
 		temp_sensor.requestTemperatures();
 	else sen.temp = 0;
 
-	if(rtc_present)
-	{
-		DateTime dt;
-		rtc.getDateTime(&dt);
-		sen.time = dt.getUnixTime();
-	}
-	else
-	{
-		sen.time = static_cast<std::uint32_t>(esp_timer_get_time() / 1000000);
-	}
+	sen.time = device_clock.get_time();
 
 	if(temp_sensor_count > 0)
 	{

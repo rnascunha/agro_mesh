@@ -15,6 +15,10 @@ template<typename Engine>
 std::size_t send_board_config(Engine&, CoAP::Message::type, CoAP::Error& ec) noexcept;
 template<typename Engine>
 std::size_t send_sensor_data(Engine&, CoAP::Message::type, CoAP::Error& ec) noexcept;
+template<typename Engine>
+std::size_t send_info(Engine&, CoAP::Message::type, const char* message, CoAP::Error& ec) noexcept;
+template<typename Engine>
+void request_time(Engine& eng, CoAP::Error& ec) noexcept;
 
 #include "impl/send_impl.hpp"
 

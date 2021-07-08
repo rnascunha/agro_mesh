@@ -1,5 +1,6 @@
 #include "esp_log.h"
 #include "../coap_engine.hpp"
+#include "esp_ota_ops.h"
 
 #include "../../version.hpp"
 
@@ -13,8 +14,10 @@ static void get_version_handler(engine::message const& request,
 	/**
 	 * Making the payload
 	 */
-	char buffer[20];
-	snprintf(buffer, 20, "%s %s", hw_version, fw_version);
+	const esp_app_desc_t * desc = esp_ota_get_app_description();
+
+	char buffer[50];
+	snprintf(buffer, 50, "%s|%s", desc->version, hw_version);
 	CoAP::Message::content_format format = CoAP::Message::content_format::text_plain;
 	CoAP::Message::Option::node content{format};
 

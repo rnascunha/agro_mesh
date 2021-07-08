@@ -4,6 +4,17 @@
 #include "freertos/task.h"
 
 #include "init.hpp"
+//#include "gpio.h"
+
+//extern GPIO_Basic led;
+//void heartbeat(void*)
+//{
+//	while(true)
+//	{
+//		led.toggle();
+//		vTaskDelay(2000 / portTICK_RATE_MS);
+//	}
+//}
 
 extern "C" void app_main(void)
 {
@@ -12,6 +23,8 @@ extern "C" void app_main(void)
 	init_io();
 	init_mesh();
 	init_coap_resources();
+
+//	xTaskCreate(&heartbeat, "heart", 512, NULL, 5, NULL);
 	/**
 	 * Hang there
 	 */

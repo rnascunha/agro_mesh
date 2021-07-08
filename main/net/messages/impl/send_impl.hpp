@@ -1,6 +1,7 @@
 #include "../send.hpp"
 #include "../make.hpp"
 #include <cstdint>
+#include "../../../types/rtc_time.hpp"
 
 static constexpr const char* route_path = "route";
 static constexpr const char* status_path = "status";
@@ -8,6 +9,9 @@ static constexpr const char* config_path = "config";
 static constexpr const char* full_config_path = "full_config";
 static constexpr const char* board_path = "board";
 static constexpr const char* sensor_path = "sensor";
+static constexpr const char* info_path = "info";
+
+extern RTC_Time device_clock;
 
 template<bool RemoveSelf /* = true */, typename Engine>
 std::size_t send_route(Engine& eng, CoAP::Message::type mtype, CoAP::Error& ec) noexcept
@@ -198,4 +202,56 @@ std::size_t send_sensor_data(Engine& eng, CoAP::Message::type mtype, CoAP::Error
 		.payload(make_sensor_data(data), sizeof(sensor_data));
 
 	return eng.send(req, ec);
+}
+
+template<typename Engine>
+std::size_t send_info(Engine& eng, CoAP::Message::type mtype, const char* message, CoAP::Error& ec) noexcept
+{
+	CoAP::Message::content_format ct{CoAP::Message::content_format::text_plain};
+	CoAP::Message::Option::node uri_path{CoAP::Message::Option::code::uri_path, info_path},
+										content_format{ct};
+
+	//Making dummy endpoint
+	mesh_addr_t addr{};
+	addr.mip.port = htons(5683);
+	typename Engine::endpoint ep{addr, CoAP::Port::ESP_Mesh::endpoint_type::to_external};
+
+	typename Engine::request req{ep};
+	req.header(mtype, CoAP::Message::code::put)
+		.add_option(uri_path)
+		.add_option(content_format)
+		.payload(message);
+
+	return eng.send(req, ec);
+}
+
+static void request_time_cb(void const*,
+		CoAP::Message::message const* response,
+		void*) noexcept
+{
+	if(response)
+	{
+		std::printf("Time updated: %u\n", *static_cast<std::uint32_t const*>(response->payload));
+		device_clock.set_time(*static_cast<std::uint32_t const*>(response->payload));
+	}
+}
+
+template<typename Engine>
+void request_time(Engine& eng, CoAP::Error& ec) noexcept
+{
+	//Making dummy endpoint
+	mesh_addr_t addr{};
+	addr.mip.port = htons(5683);
+	typename Engine::endpoint ep{addr, CoAP::Port::ESP_Mesh::endpoint_type::to_external};
+	//Making request
+	CoAP::Message::content_format ct{CoAP::Message::content_format::application_octet_stream};
+	CoAP::Message::Option::node uri_path{CoAP::Message::Option::code::uri_path, "time"},
+									content_format{ct};
+	typename Engine::request req{ep};
+	req.header(CoAP::Message::type::confirmable, CoAP::Message::code::get)
+		.add_option(uri_path)
+		.add_option(content_format)
+		.callback(request_time_cb);
+
+	eng.send(req, ec);
 }

@@ -9,6 +9,7 @@
 #include "esp_mesh.h"
 
 #include "messages/send.hpp"
+#include "types.hpp"
 
 using namespace CoAP::Log;
 
@@ -20,6 +21,8 @@ bool coap_engine_started = false;
  * Receving buffer of proxy
  */
 static uint8_t rx_buf[RX_SIZE];
+
+extern xQueueHandle send_data_queue;
 
 CoAP::Error ecp;
 /**
@@ -37,6 +40,8 @@ void coap_te_engine(void*) noexcept
 	while(coap_engine.run<50>(ec)){}
 
 	coap_engine_started = false;
+	Packet_Type t = Packet_Type::no_packet;
+	xQueueSend(send_data_queue, &t, 0);
 	vTaskDelete(NULL);
 }
 
@@ -110,43 +115,8 @@ void coap_forward_proxy(void*) noexcept
 	vTaskDelete(NULL);
 }
 
-///**
-// * Callback function of transaction
-// */
-//void request_cb(void const* trans, CoAP::Message::message const* response, void*) noexcept
-//{
-//	CoAP::Log::debug("Request callback called...");
-//
-//	auto const* t = static_cast<engine::transaction_t const*>(trans);
-//	CoAP::Log::status("Status: %s", CoAP::Debug::transaction_status_string(t->status()));
-//	if(response)
-//	{
-//		char ep_addr[20];
-//		std::printf("Response received! %s\n", t->endpoint().address(ep_addr, 20));
-//		CoAP::Debug::print_message_string(*response);
-//
-//		/**
-//		 * Checking if we received a empty acknowledgment. This means that we
-//		 * are going to receive our response in a separated message, so we can
-//		 * not go out of the check loop at main.
-//		 */
-//		if(response->mtype == CoAP::Message::type::acknowledgment &&
-//			response->mcode == CoAP::Message::code::empty)
-//		{
-//			return;
-//		}
-//	}
-//	else
-//	{
-//		/**
-//		 * Function timeout or transaction was cancelled
-//		 */
-//		CoAP::Log::status("Response NOT received");
-//	}
-//}
-
 /**
- * Example on how to initiate a request to a external network
+ * Send periodic data
  */
 void coap_send_main(void*) noexcept
 {
@@ -159,8 +129,37 @@ void coap_send_main(void*) noexcept
 			ESP_LOGE(TAG, "ERROR sending time request [%d/%s]...", ec.value(), ec.message());
 		}
 		else
+		{
 			ESP_LOGI(TAG, "Sending time request...");
+		}
 		vTaskDelay((5 * 60 * 1000) / portTICK_RATE_MS);
+	}
+	vTaskDelete(NULL);
+}
+
+
+/**
+ * Async send data
+ */
+void send_async_data(void*) noexcept
+{
+	Packet_Type type;
+	while(coap_engine_started)
+	{
+		if(xQueueReceive(send_data_queue, &type, portMAX_DELAY))
+		{
+			switch(type)
+			{
+				case Packet_Type::sensor:
+				{
+					CoAP::Error ec;
+					send_sensor_data(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+				}
+				break;
+				default:
+					break;
+			}
+		}
 	}
 	vTaskDelete(NULL);
 }

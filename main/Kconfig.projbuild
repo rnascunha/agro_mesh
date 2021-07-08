@@ -79,7 +79,7 @@ menu "Agro Mesh Configuration"
 	config BUFFER_TRANSACTION
     	int "Packet size"
     	range 64 1024
-    	default 512
+    	default 576
     	help
     		Max packet size supported by a CoAP transaction
     		

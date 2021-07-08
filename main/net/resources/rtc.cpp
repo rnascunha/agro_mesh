@@ -1,67 +1,71 @@
 #include "esp_log.h"
 #include "../coap_engine.hpp"
 #include "../../helper/convert.hpp"
+#include "../../types/rtc_time.hpp"
 
-#include "datetime.h"
-#include "ds3231.hpp"
+#include "coap-te-debug.hpp"
 
-extern DS3231 rtc;
-extern bool rtc_present;
+extern RTC_Time device_clock;
 
 extern const char* RESOURCE_TAG;
 
 void get_rtc_time_handler(engine::message const& request,
 								engine::response& response, void*) noexcept
 {
-	ESP_LOGD(RESOURCE_TAG, "Called get rtc time handler");
+	ESP_LOGI(RESOURCE_TAG, "Called get rtc time handler");
 
-	if(rtc_present == 0)
+	CoAP::Debug::print_message(request);
+
+	CoAP::Message::Option::option op;
+	CoAP::Message::content_format accept_format = CoAP::Message::accept::text_plain;
+	if(CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::accept))
 	{
-		response
-			.code(CoAP::Message::code::not_implemented)
-			.payload("rtc not detected")
-			.serialize();
-		return;
+		accept_format = static_cast<CoAP::Message::content_format>(CoAP::Message::Option::parse_unsigned(op));
 	}
-
-	DateTime dt;
-	rtc.getDateTime(&dt);
 
 	/**
 	 * Making the payload
 	 */
-	char buffer[20];
-	snprintf(buffer, 20, "%u", dt.getUnixTime());
-	CoAP::Message::content_format format = CoAP::Message::content_format::text_plain;
-	CoAP::Message::Option::node content{format};
+	if(op && accept_format == CoAP::Message::content_format::application_octet_stream)
+	{
+		CoAP::Message::content_format format = CoAP::Message::content_format::application_octet_stream;
+		CoAP::Message::Option::node content{format};
+		std::uint32_t time = device_clock.get_time();//dt.getUnixTime();
 
-	/**
-	 * Sending response (always call serialize)
-	 */
-	response
-			.code(CoAP::Message::code::content)
-			.add_option(content)
-			.payload(buffer)
-			.serialize();
+		/**
+		 * Sending response (always call serialize)
+		 */
+		response
+				.code(CoAP::Message::code::content)
+				.add_option(content)
+				.payload(&time, sizeof(std::uint32_t))
+				.serialize();
+	}
+	else
+	{
+		char buffer[20];
+		snprintf(buffer, 20, "%u", device_clock.get_time()/*dt.getUnixTime()*/);
+		CoAP::Message::content_format format = CoAP::Message::content_format::text_plain;
+		CoAP::Message::Option::node content{format};
+
+		/**
+		 * Sending response (always call serialize)
+		 */
+		response
+				.code(CoAP::Message::code::content)
+				.add_option(content)
+				.payload(buffer)
+				.serialize();
+	}
 }
 
 void put_rtc_time_handler(engine::message const& request,
 								engine::response& response, void*) noexcept
 {
-	ESP_LOGD(RESOURCE_TAG, "Called put rtc time handler");
+	ESP_LOGI(RESOURCE_TAG, "Called put rtc time handler");
 
-	if(rtc_present == 0)
-	{
-		response
-			.code(CoAP::Message::code::not_implemented)
-			.payload("rtc not detected")
-			.serialize();
-		return;
-	}
+	CoAP::Debug::print_message(request);
 
-	ESP_LOGI(RESOURCE_TAG, "Payload[%zu]: %.*s",
-			request.payload_len,
-			request.payload_len, static_cast<const char*>(request.payload));
 	if(!request.payload || request.payload_len == 0)
 	{
 		response
@@ -71,10 +75,24 @@ void put_rtc_time_handler(engine::message const& request,
 		return;
 	}
 
-	DateTime dt;
-	std::uint32_t unix_time = strntoll(static_cast<const char*>(request.payload), request.payload_len);
-	dt.setUnixTime(unix_time);
-	rtc.setDateTime(&dt);
+	CoAP::Message::Option::option op;
+	CoAP::Message::content_format content_format = CoAP::Message::content_format::text_plain;
+	if(CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::content_format))
+	{
+		content_format = static_cast<CoAP::Message::content_format>(CoAP::Message::Option::parse_unsigned(op));
+	}
+
+	std::uint32_t unix_time;
+	if(op && content_format == CoAP::Message::content_format::application_octet_stream)
+	{
+		unix_time = *static_cast<const uint32_t*>(request.payload);
+	}
+	else
+	{
+		unix_time = strntoll(static_cast<const char*>(request.payload), request.payload_len);
+	}
+
+	device_clock.set_time(unix_time);
 
 	response
 			.code(CoAP::Message::code::changed)

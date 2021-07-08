@@ -4,13 +4,14 @@
 #include "gpio.h"
 
 #include "i2c_master.h"
-#include "datetime.h"
-#include "ds3231.hpp"
 
 #include "onewire.h"
 #include "dallas_temperature.h"
 
 #include "pinout.hpp"
+
+#include "net/types.hpp"
+#include "types/rtc_time.hpp"
 
 #define TAG		"AGRO_IO"
 
@@ -37,10 +38,17 @@ GPIO_Basic water_level[]{
 const std::size_t water_level_count = sizeof(water_level) / sizeof(water_level[0]);
 
 I2C_Master i2c(I2C_NUM_0, I2C_SCL, I2C_SDA, I2C_FAST_SPEED_HZ);
-DS3231 rtc(&i2c);
-
-bool rtc_present = false;
 std::uint8_t temp_sensor_count = false;
+
+xQueueHandle send_data_queue = NULL;
+
+static void IRAM_ATTR gpio_input_interrput(void*)
+{
+	Packet_Type t = Packet_Type::sensor;
+	xQueueSendFromISR(send_data_queue, &t, NULL);
+}
+
+RTC_Time device_clock(i2c);
 
 void init_io() noexcept
 {
@@ -63,12 +71,14 @@ void init_io() noexcept
 	for(std::size_t i = 0; i < water_level_count; i++)
 	{
 		water_level[i].mode(GPIO_MODE_INPUT);
+		water_level[i].enable_interrupt(GPIO_INTR_ANYEDGE);
+		water_level[i].register_interrupt(gpio_input_interrput, nullptr);
 	}
 
 	i2c.init();
+	device_clock.init(i2c);
 
-	rtc_present = i2c.probe(DS3231::reg);
-	if(rtc_present) rtc.begin();
+	send_data_queue = xQueueCreate(10, sizeof(Packet_Type));
 
-	ESP_LOGI(TAG, "RTC present: %s", rtc_present ? "true" : "false");
+	ESP_LOGI(TAG, "RTC present: %s", device_clock.has_rtc() ? "true" : "false");
 }
