@@ -76,11 +76,11 @@ static void send_init_packtes()
 	}
 	ec.clear();
 
-//	request_time(coap_engine, ec);
-//	if(ec)
-//	{
-//		ESP_LOGE(TAG, "ERROR requesting time [%d/%s]...", ec.value(), ec.message());
-//	}
+	request_time(coap_engine, ec);
+	if(ec)
+	{
+		ESP_LOGE(TAG, "ERROR requesting time [%d/%s]...", ec.value(), ec.message());
+	}
 }
 
 /**

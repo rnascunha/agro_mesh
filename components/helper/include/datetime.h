@@ -82,6 +82,7 @@ class DateTime {
 		bool isLeapYear(void); /*é ano bissexto*/
 
 		DayOfWeek dayOfWeek(void);
+		static DayOfWeek dayOfWeek(uint8_t day, uint8_t month, uint16_t year) noexcept;
 
 	protected:
 		//Date

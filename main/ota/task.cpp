@@ -24,6 +24,7 @@
 #define HASH_LEN 32 /* SHA-256 digest length */
 
 static const char *TAG = "OTA";
+extern const std::size_t image_name_max_size = 30;
 
 #define PAYLOAD_SIZE		512
 
@@ -38,7 +39,8 @@ struct OTA_update{
 	const esp_partition_t *update_partition = NULL;
 	esp_ota_handle_t handler = 0;
 	std::size_t total_bytes_transfer = 0;
-	char image_name[30];
+	unsigned next_block = 0;
+	char image_name[image_name_max_size];
 
 	void reset() noexcept
 	{
@@ -46,6 +48,7 @@ struct OTA_update{
 		update_partition = NULL;
 		handler = 0;
 		total_bytes_transfer = 0;
+		next_block = 0;
 	}
 };
 
@@ -62,7 +65,8 @@ enum class ota_status{
 	update_partition_not_found,
 	image_corrupted,
 	set_boot,
-	reveice_timeout
+	reveice_timeout,
+	server_response_error
 };
 
 static const char* ota_error(ota_status status) noexcept
@@ -80,10 +84,11 @@ static const char* ota_error(ota_status status) noexcept
 		case ota_status::image_corrupted: return "image validation fail";
 		case ota_status::set_boot: return "set boot error";
 		case ota_status::reveice_timeout: return "receive packet timeout";
+		case ota_status::server_response_error: return "server response error";
 		default:
 			break;
 	}
-	return "undefiend";
+	return "undefined";
 }
 
 static void send_ota_info(engine& eng, ota_status status) noexcept
@@ -96,7 +101,7 @@ static void fail_ota_task(ota_status status, TaskHandle_t handle = NULL) noexcep
 {
 	send_ota_info(coap_engine, status);
 	vTaskDelete(handle);
-	handle = NULL;
+	ota_task_handler = NULL;
 }
 
 template<bool CheckRunningVersion = true>
@@ -178,6 +183,11 @@ static void request_ota_cb(void const* trans,
 		ESP_LOGD(TAG, "Response received! [%zu]", response->payload_len);
 
 		using namespace CoAP::Message;
+		if(CoAP::Message::is_error(response->mcode))
+		{
+			fail_ota_task(ota_status::server_response_error, ota_task_handler);
+			return;
+		}
 
 		/**
 		 * The size2 option, if present, informs the total size of the
@@ -204,6 +214,15 @@ static void request_ota_cb(void const* trans,
 			unsigned //block_size = Option::block_size(value),
 					block_num = Option::block_number(value);
 					//offset = Option::byte_offset(value);
+
+			if(ota_data.next_block != block_num)
+			{
+				/**
+				 * Probabily a retransmited block was sent before receive the ack
+				 */
+				ESP_LOGE(TAG, "Invalid block number (out of order block %u)", block_num);
+				return;
+			}
 
 			if(block_num == 0)
 			{
@@ -241,7 +260,8 @@ static void request_ota_cb(void const* trans,
 			 * Any other value will return false
 			 */
 			unsigned n_value;
-			Option::make_block(n_value, Option::block_number(value) + 1, 0, PAYLOAD_SIZE);
+			Option::make_block(n_value, block_num + 1/*Option::block_number(value) + 1*/, 0, PAYLOAD_SIZE);
+			ota_data.next_block = block_num + 1;
 
 			/**
 			 * Making a request to get the next block.
@@ -273,7 +293,6 @@ static void request_ota_cb(void const* trans,
 			 * If not block wise transfer, just print the data
 			 */
 			ESP_LOGE(TAG, "Response doesn't have op Block2\n");
-
 		}
 	}
 	else

@@ -177,7 +177,10 @@ void DateTime::getDateTime(DateTime *dateTime)
  */
 bool DateTime::isLeapYear()
 {
-	return (_year % 4) ? false : true;
+	if(_year % 4) return false;
+	if(_year % 100) return true;
+	if(_year % 400) return false;
+	return true;
 }
 
 /*
@@ -199,8 +202,29 @@ uint32_t DateTime::getUnixTime()
 
 /*
  * https://en.wikipedia.org/wiki/Zeller%27s_congruence
+ * http://programacionnerd.blogspot.com/2012/05/c-ejemplos-congruencia-de-zeller-nivel.html
  */
 DayOfWeek DateTime::dayOfWeek(void)
 {
-	return (DayOfWeek)(((((_year * 365 + ((_year-1) / 4) - ((_year-1) / 100) + ((_year-1) / 400)) % 7) + 5) % 7) + 1);
+	return DateTime::dayOfWeek(_day, _month, _year);
+}
+
+DayOfWeek DateTime::dayOfWeek(uint8_t day, uint8_t month, uint16_t year) noexcept
+{
+    unsigned h, K, J;
+    if(month <= 2)
+    {
+        month =+ 12;
+        year = year - 1;
+    }
+    else
+        month -= 2;
+
+    K = year % 100;
+    J = year / 100;
+
+    h = (700 + ((26 * month - 2) / 10) +
+        day + K + (K / 4) + ((J / 4) + 5 * J)) % 7;
+
+    return static_cast<DayOfWeek>(h);
 }

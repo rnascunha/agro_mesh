@@ -28,6 +28,7 @@ extern engine::resource_node res_sensor_temp;
 extern engine::resource_node res_sensor_water_level;
 
 extern engine::resource_node res_rtc_time;
+extern engine::resource_node res_fuse_time;
 extern engine::resource_node res_uptime;
 
 extern engine::resource_node res_ac_load;
@@ -55,6 +56,7 @@ extern engine::resource_node res_packet_sensor;
 extern engine::resource_node res_packet_board;
 
 extern engine::resource_node res_ota;
+extern engine::resource_node res_job;
 
 engine::resource_node res_well_knwon{".well-known"};
 engine::resource_node res_sensor{"sensor"};
@@ -80,12 +82,14 @@ void init_coap_resources() noexcept
 				res_reset_reason,
 				res_sensor,
 				res_rtc_time,
+				res_fuse_time,
 				res_ac_load,
 				res_led,
 				res_net,
 				res_vesion,
 				res_packet,
 				res_ota,
+				res_job,
 				res_well_knwon);
 }
 

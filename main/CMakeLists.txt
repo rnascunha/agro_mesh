@@ -10,19 +10,21 @@ set(RESOURCE_LIST	${RESOURCE_PATH}/ac_load.cpp
 					${RESOURCE_PATH}/discovery.cpp
 					${RESOURCE_PATH}/packets.cpp
 					${RESOURCE_PATH}/ota.cpp
+					${RESOURCE_PATH}/job.cpp
 					)	
 
-idf_component_register(SRCS agro_mesh_main.cpp
+idf_component_register(SRCS main.cpp
 							init_io.cpp  
+							storage.cpp
 							types/rtc_time.cpp
+							types/job.cpp
 							net/coap_resources.cpp
 							net/init_mesh.cpp
 							net/tasks.cpp
 							net/messages/make.cpp
+							ota/task.cpp
 							${RESOURCE_LIST}
 							helper/convert.cpp
-							ota/task.cpp
-							#							helper/decompose.cpp
                        INCLUDE_DIRS
                        REQUIRES)
 						
@@ -32,5 +34,5 @@ target_compile_options(${COMPONENT_LIB}
 						-DCOAP_TE_PORT_ESP_MESH=1
 						-DCOAP_TE_PORT_POSIX=1
 						-DCOAP_TE_PORT_C_STANDARD=1
-						-DCOAP_TE_LOG_LEVEL=5
+						-DCOAP_TE_LOG_LEVEL=${CONFIG_COAP_TE_LOG_LEVEL}
 						-DCOAP_TE_USE_SELECT=1)

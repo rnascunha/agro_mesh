@@ -75,13 +75,33 @@ menu "Agro Mesh Configuration"
     	default 5683
     	help
             Port that the root node UDP connection will bind.
-            
-	config BUFFER_TRANSACTION
-    	int "Packet size"
-    	range 64 1024
-    	default 576
+    
+    choice
+    	bool "Packet size (header + payload)"
+    	default PACKET_SIZE_576
     	help
-    		Max packet size supported by a CoAP transaction
+    		Max packet size supported by a CoAP transaction, considering 
+    		header + options + payload.
+    	
+    	config PACKET_SIZE_128
+            bool "128bytes = 64h + 64p"
+        config PACKET_SIZE_320
+            bool "318bytes = 64h + 256p"
+        config PACKET_SIZE_576
+            bool "576bytes = 64h + 512p"
+        config PACKET_SIZE_1088
+            bool "1088bytes = 64h + 1024p"
+    endchoice
+    		
+    config BUFFER_TRANSACTION
+    	int
+        default 128 if PACKET_SIZE_128
+        default 320 if PACKET_SIZE_320
+        default 576 if PACKET_SIZE_576
+        default 1088 if PACKET_SIZE_1088
+        help
+    		Max packet size supported by a CoAP transaction, considering 
+    		header + options + payload.
     		
     config TRANSACTION_NUM
     	int "Number of transactions"
@@ -89,5 +109,11 @@ menu "Agro Mesh Configuration"
     	default 4
     	help
     		Number of simultaneous transactions that CoAP engine can hold
+    		
+    config ENABLE_HEARTBEAT_TASK
+        bool "Enable Heartbeat Task"
+        default 0
+        help
+            Enable heartbeat task (blink).
 endmenu
 

@@ -9,7 +9,7 @@ extern RTC_Time device_clock;
 
 extern const char* RESOURCE_TAG;
 
-void get_rtc_time_handler(engine::message const& request,
+static void get_rtc_time_handler(engine::message const& request,
 								engine::response& response, void*) noexcept
 {
 	ESP_LOGI(RESOURCE_TAG, "Called get rtc time handler");
@@ -59,7 +59,7 @@ void get_rtc_time_handler(engine::message const& request,
 	}
 }
 
-void put_rtc_time_handler(engine::message const& request,
+static void put_rtc_time_handler(engine::message const& request,
 								engine::response& response, void*) noexcept
 {
 	ESP_LOGI(RESOURCE_TAG, "Called put rtc time handler");
@@ -99,7 +99,102 @@ void put_rtc_time_handler(engine::message const& request,
 			.serialize();
 }
 
+static void get_fuse_handler(engine::message const& request,
+								engine::response& response, void*) noexcept
+{
+	ESP_LOGI(RESOURCE_TAG, "Called get fuse time handler");
+
+	CoAP::Debug::print_message(request);
+
+	CoAP::Message::Option::option op;
+	CoAP::Message::content_format accept_format = CoAP::Message::accept::text_plain;
+	if(CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::accept))
+	{
+		accept_format = static_cast<CoAP::Message::content_format>(CoAP::Message::Option::parse_unsigned(op));
+	}
+
+	/**
+	 * Making the payload
+	 */
+	if(op && accept_format == CoAP::Message::content_format::application_octet_stream)
+	{
+		CoAP::Message::content_format format = CoAP::Message::content_format::application_octet_stream;
+		CoAP::Message::Option::node content{format};
+		fuse_type fuse = device_clock.fuse();
+
+		/**
+		 * Sending response (always call serialize)
+		 */
+		response
+				.code(CoAP::Message::code::content)
+				.add_option(content)
+				.payload(&fuse, sizeof(fuse_type))
+				.serialize();
+	}
+	else
+	{
+		char buffer[20];
+		snprintf(buffer, 20, "%d", device_clock.fuse());
+		CoAP::Message::content_format format = CoAP::Message::content_format::text_plain;
+		CoAP::Message::Option::node content{format};
+
+		/**
+		 * Sending response (always call serialize)
+		 */
+		response
+				.code(CoAP::Message::code::content)
+				.add_option(content)
+				.payload(buffer)
+				.serialize();
+	}
+}
+
+static void put_fuse_handler(engine::message const& request,
+								engine::response& response, void*) noexcept
+{
+	ESP_LOGI(RESOURCE_TAG, "Called put fuse time handler");
+
+	CoAP::Debug::print_message(request);
+
+	if(!request.payload || request.payload_len == 0)
+	{
+		response
+			.code(CoAP::Message::code::bad_request)
+			.payload("data not set")
+			.serialize();
+		return;
+	}
+
+	CoAP::Message::Option::option op;
+	CoAP::Message::content_format content_format = CoAP::Message::content_format::text_plain;
+	if(CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::content_format))
+	{
+		content_format = static_cast<CoAP::Message::content_format>(CoAP::Message::Option::parse_unsigned(op));
+	}
+
+	fuse_type fuse;
+	if(op && content_format == CoAP::Message::content_format::application_octet_stream)
+	{
+		fuse = *static_cast<const fuse_type*>(request.payload);
+	}
+	else
+	{
+		fuse = strntoll(static_cast<const char*>(request.payload), request.payload_len);
+	}
+
+	device_clock.fuse(fuse);
+
+	response
+			.code(CoAP::Message::code::changed)
+			.serialize();
+}
+
 engine::resource_node res_rtc_time("rtc",
 									get_rtc_time_handler,
 									nullptr,
 									put_rtc_time_handler);
+
+engine::resource_node res_fuse_time("fuse",
+									get_fuse_handler,
+									nullptr,
+									put_fuse_handler);
