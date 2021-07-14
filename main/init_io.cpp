@@ -26,7 +26,7 @@ GPIO_Basic ac_load[]{
 		GPIO_Basic{AC_LOAD3}
 };
 
-const std::size_t ac_load_count = sizeof(ac_load) / sizeof(ac_load[0]);
+extern const std::size_t ac_load_count = sizeof(ac_load) / sizeof(ac_load[0]);
 
 GPIO_Basic water_level[]{
 		GPIO_Basic{WATER_LEVEL1},

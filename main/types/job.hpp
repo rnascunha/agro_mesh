@@ -35,11 +35,16 @@ struct time{
 	bool operator!=(time const&) const noexcept;
 	bool operator<(time const&) const noexcept;
 	bool operator>(time const&) const noexcept;
+	bool operator>=(time const&) const noexcept;
+	bool operator<=(time const&) const noexcept;
+
+	time& operator=(time const&) noexcept = default;
 };
 
 bool between(value_time, time const& before, time const& after) noexcept;
 
 struct scheduler{
+	scheduler() = default;
 	scheduler(scheduler const&) =  default;
 	scheduler(time const& before, time const& after, dow dw_ = all_dow_days);
 
@@ -47,23 +52,51 @@ struct scheduler{
 	time			time_after;
 	dow				dw = all_dow_days;		///< Day of the week
 
+	bool operator==(scheduler const&) const noexcept;
+	scheduler& operator=(scheduler const&) noexcept = default;
 	bool is_active(value_time) const noexcept;
-	operator bool() const noexcept;
+	bool operator()() const noexcept;
 };
+
+void execute(std::uint8_t act) noexcept;
 
 struct job{
 	static constexpr const std::size_t packet_size = 7;
 
+	job() = default;
 	job(scheduler const& sch_, std::uint8_t prior, std::uint8_t act)
 		: sch(sch_), priority(prior), active(act){}
 
 	scheduler		sch;
-	std::uint8_t	priority;
-	std::uint8_t	active;
+	std::uint8_t	priority = 0;
+	std::uint8_t	active = 0;
+
+	job& operator=(job const&) noexcept = default;
+	bool operator==(job const&) noexcept;
+	void execute() const noexcept;
 };
 
-struct run{
+class run{
+	public:
+		run(const char*);
 
+		bool check() noexcept;
+
+		/**
+		 *
+		 * @param index Index of new job running (if return is true)
+		 * @return Check if new job is running
+		 * @retval true new job is running
+		 * @retval false old job still running
+		 */
+		bool check(int& index) noexcept;
+		job const& running_job() const noexcept{ return job_; }
+	private:
+		void clear() noexcept;
+		bool is_clear() const noexcept;
+
+		const char* path_;
+		job			job_;
 };
 
 }//Jobs

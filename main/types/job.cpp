@@ -1,8 +1,14 @@
 #include "job.hpp"
 
+#include "gpio.h"
 #include "datetime.h"
+#include "../storage.hpp"
 
 extern RTC_Time device_clock;
+extern GPIO_Basic ac_load[];
+extern const std::size_t ac_load_count;
+
+static constexpr const std::uint8_t default_act = 0;
 
 namespace Jobs{
 
@@ -46,6 +52,16 @@ bool time::operator>(time const& rhs) const noexcept
 	return *this != rhs && !(*this < rhs);
 }
 
+bool time::operator>=(time const& rhs) const noexcept
+{
+	return !(*this < rhs);
+}
+
+bool time::operator<=(time const& rhs) const noexcept
+{
+	return !(*this > rhs);
+}
+
 bool between(value_time t, time const& before, time const& after) noexcept
 {
 	DateTime dt;
@@ -53,9 +69,9 @@ bool between(value_time t, time const& before, time const& after) noexcept
 	time t_{dt.getHour(), dt.getMinute()};
 
 	if(before < after)
-		return t_ > before && t_ < after;
+		return t_ >= before && t_ < after;
 	else if(after < before)
-		return t_ > after || t_ < before;
+		return t_ >= after || t_ < before;
 	return t_ == after;
 }
 
@@ -67,9 +83,105 @@ bool scheduler::is_active(value_time t) const noexcept
 	return between(t, time_before, time_after) && is_dow(dw, t);
 }
 
-scheduler::operator bool() const noexcept
+bool scheduler::operator()() const noexcept
 {
 	return is_active(device_clock.get_local_time());
 }
 
-}//Jbos
+bool scheduler::operator==(scheduler const& rhs) const noexcept
+{
+	return dw == rhs.dw &&
+			time_before == rhs.time_before &&
+			time_after == rhs.time_after;
+}
+
+void execute(std::uint8_t act) noexcept
+{
+	for(std::size_t i = 0; i < ac_load_count; i++)
+	{
+		ac_load[i].write(act & (1 << i) ? 1 : 0);
+	}
+}
+
+void job::execute() const noexcept
+{
+	Jobs::execute(active);
+}
+
+bool job::operator==(job const& rhs) noexcept
+{
+	return rhs.active == active
+			&& rhs.priority == priority
+			&& rhs.sch == sch;
+}
+
+run::run(const char* path) :
+	path_(path){}
+
+void run::clear() noexcept
+{
+	job_.priority = 0;
+	job_.active = default_act;
+}
+
+bool run::is_clear() const noexcept
+{
+	return job_.priority == 0;
+}
+
+bool run::check(int& index) noexcept
+{
+	index = 0;
+	bool ret = false;
+	FILE *f = fopen(path_, "rb");
+	if (f == NULL)
+	{
+		if(!is_clear())
+		{
+			clear();
+			ret = true;
+		}
+		job_.execute();
+		return ret;
+	}
+
+	if(!is_clear() && !job_.sch())
+	{
+		clear();
+		ret = true;
+	}
+
+	std::uint8_t data[job::packet_size];
+	std::size_t readed = 0;
+	int count = 1;
+	do{
+		readed = fread(data, 1, job::packet_size, f);
+		Jobs::job jr{
+					Jobs::scheduler{
+						Jobs::time{data[0], data[1]},
+						Jobs::time{data[2], data[3]},
+						static_cast<Jobs::dow>(data[4])},
+					data[5], data[6]};
+		if(jr.sch() && jr.priority > job_.priority)
+		{
+			index = count;
+			job_ = jr;
+			ret = true;
+		}
+		count++;
+	}while(readed);
+	fclose(f);
+
+	if(ret)
+		job_.execute();
+
+	return ret;
+}
+
+bool run::check() noexcept
+{
+	int index;
+	return check(index);
+}
+
+}//Jobs

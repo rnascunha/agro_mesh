@@ -1,6 +1,7 @@
 #include "nvs_flash.h"
 #include "init.hpp"
 #include "storage.hpp"
+#include "job.hpp"
 
 #ifdef CONFIG_ENABLE_HEARTBEAT_TASK
 #include "freertos/FreeRTOS.h"
@@ -27,6 +28,7 @@ extern "C" void app_main(void)
 	mount_storage();
 	init_mesh();
 	init_coap_resources();
+	init_job_task();
 
 #ifdef CONFIG_ENABLE_HEARTBEAT_TASK
 	xTaskCreate(&heartbeat, "heart", 512, NULL, 5, NULL);

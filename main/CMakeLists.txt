@@ -16,6 +16,7 @@ set(RESOURCE_LIST	${RESOURCE_PATH}/ac_load.cpp
 idf_component_register(SRCS main.cpp
 							init_io.cpp  
 							storage.cpp
+							job.cpp
 							types/rtc_time.cpp
 							types/job.cpp
 							net/coap_resources.cpp
