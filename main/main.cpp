@@ -17,7 +17,6 @@ void heartbeat(void*)
 		vTaskDelay(2000 / portTICK_RATE_MS);
 	}
 }
-
 #endif /* CONFIG_ENABLE_HEARTBEAT_TASK */
 
 extern "C" void app_main(void)

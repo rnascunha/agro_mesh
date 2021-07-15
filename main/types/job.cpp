@@ -71,7 +71,7 @@ bool between(value_time t, time const& before, time const& after) noexcept
 	if(before < after)
 		return t_ >= before && t_ < after;
 	else if(after < before)
-		return t_ >= after || t_ < before;
+		return t_ >= before || t_ < after;
 	return t_ == after;
 }
 
@@ -161,6 +161,7 @@ bool run::check(int& index, bool force /* = false */) noexcept
 	int count = 1;
 	do{
 		readed = fread(data, 1, job::packet_size, f);
+		if(!readed) break;
 		Jobs::job jr{
 					Jobs::scheduler{
 						Jobs::time{data[0], data[1]},
@@ -174,7 +175,7 @@ bool run::check(int& index, bool force /* = false */) noexcept
 			ret = true;
 		}
 		count++;
-	}while(readed);
+	}while(true);
 	fclose(f);
 
 //	if(ret)

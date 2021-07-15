@@ -231,7 +231,6 @@ static void request_time_cb(void const*,
 {
 	if(response)
 	{
-		std::printf("Time updated: %u\n", *static_cast<std::uint32_t const*>(response->payload));
 		device_clock.set_time(*static_cast<std::uint32_t const*>(response->payload));
 	}
 }
