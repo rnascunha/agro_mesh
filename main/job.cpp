@@ -4,12 +4,15 @@
 #include "freertos/task.h"
 #include "net/coap_engine.hpp"
 #include "net/messages/send.hpp"
+#include "storage.hpp"
 
 #define TAG		"JOB"
 
 extern const char* job_path;
 extern RTC_Time device_clock;
 extern engine coap_engine;
+
+volatile bool job_force_check = false;
 
 static void print_job(Jobs::job const& jb) noexcept
 {
@@ -35,7 +38,7 @@ static void jobs(void*) noexcept
 	print_job(scheduler.running_job());
 	do{
 		int index;
-		if(scheduler.check(index))
+		if(scheduler.check(index, job_force_check))
 		{
 			ESP_LOGI(TAG, "New job running");
 			print_job(scheduler.running_job());
@@ -50,5 +53,6 @@ static void jobs(void*) noexcept
 
 void init_job_task() noexcept
 {
-	xTaskCreate(&jobs, "jobs", 2048, NULL, 5, NULL);
+	if(!storage_is_mounted())
+		xTaskCreate(&jobs, "jobs", 2048, NULL, 5, NULL);
 }

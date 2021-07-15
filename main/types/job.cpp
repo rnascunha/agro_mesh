@@ -129,7 +129,7 @@ bool run::is_clear() const noexcept
 	return job_.priority == 0;
 }
 
-bool run::check(int& index) noexcept
+bool run::check(int& index, bool force /* = false */) noexcept
 {
 	index = 0;
 	bool ret = false;
@@ -149,6 +149,11 @@ bool run::check(int& index) noexcept
 	{
 		clear();
 		ret = true;
+	}
+
+	if(force)
+	{
+		clear();
 	}
 
 	std::uint8_t data[job::packet_size];
@@ -172,16 +177,16 @@ bool run::check(int& index) noexcept
 	}while(readed);
 	fclose(f);
 
-	if(ret)
-		job_.execute();
+//	if(ret)
+	job_.execute();
 
 	return ret;
 }
 
-bool run::check() noexcept
+bool run::check(bool force /* = false */) noexcept
 {
 	int index;
-	return check(index);
+	return check(index, force);
 }
 
 }//Jobs

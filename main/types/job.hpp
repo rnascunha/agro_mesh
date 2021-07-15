@@ -80,7 +80,7 @@ class run{
 	public:
 		run(const char*);
 
-		bool check() noexcept;
+		bool check(bool force = false) noexcept;
 
 		/**
 		 *
@@ -89,7 +89,7 @@ class run{
 		 * @retval true new job is running
 		 * @retval false old job still running
 		 */
-		bool check(int& index) noexcept;
+		bool check(int& index, bool force = false) noexcept;
 		job const& running_job() const noexcept{ return job_; }
 	private:
 		void clear() noexcept;
