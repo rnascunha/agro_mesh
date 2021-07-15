@@ -47,12 +47,15 @@ static void jobs(void*) noexcept
 			snprintf(buf, 30, "new job running|%d", index);
 			send_info(coap_engine, CoAP::Message::type::confirmable, buf, ec);
 		}
+		job_force_check = false;
 		vTaskDelay((60 * 1000) / portTICK_RATE_MS);
 	}while(true);
 }
 
 void init_job_task() noexcept
 {
-	if(!storage_is_mounted())
+	if(storage_is_mounted())
+	{
 		xTaskCreate(&jobs, "jobs", 2048, NULL, 5, NULL);
+	}
 }
