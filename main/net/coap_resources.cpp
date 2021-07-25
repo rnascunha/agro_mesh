@@ -57,6 +57,7 @@ extern engine::resource_node res_packet_board;
 
 extern engine::resource_node res_ota;
 extern engine::resource_node res_job;
+extern engine::resource_node res_app;
 
 engine::resource_node res_well_knwon{".well-known"};
 engine::resource_node res_sensor{"sensor"};
@@ -90,6 +91,7 @@ void init_coap_resources() noexcept
 				res_packet,
 				res_ota,
 				res_job,
+				res_app,
 				res_well_knwon);
 }
 

@@ -102,6 +102,15 @@ menu "Agro Mesh Configuration"
         help
     		Max packet size supported by a CoAP transaction, considering 
     		header + options + payload.
+    
+     config BUFFER_TRANSACTION_PAYLOAD
+    	int
+        default 64 if PACKET_SIZE_128
+        default 256 if PACKET_SIZE_320
+        default 512 if PACKET_SIZE_576
+        default 1024 if PACKET_SIZE_1088
+        help
+    		Payload size of CoAP packet.
     		
     config TRANSACTION_NUM
     	int "Number of transactions"

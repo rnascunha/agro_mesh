@@ -13,6 +13,8 @@ static wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
 // Mount path for the partition
 const char *base_path = "/flash";
 const char* job_path = "/flash/job";
+const char* app_list = "/flash/app";
+const char* app_temp = "/flash/app_temp";
 
 bool mount_storage() noexcept
 {

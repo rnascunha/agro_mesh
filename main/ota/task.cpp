@@ -26,7 +26,7 @@
 static const char *TAG = "OTA";
 extern const std::size_t image_name_max_size = 30;
 
-#define PAYLOAD_SIZE		512
+#define PAYLOAD_SIZE		CONFIG_BUFFER_TRANSACTION_PAYLOAD
 
 TaskHandle_t ota_task_handler = NULL;
 extern engine coap_engine;

@@ -11,6 +11,7 @@ set(RESOURCE_LIST	${RESOURCE_PATH}/ac_load.cpp
 					${RESOURCE_PATH}/packets.cpp
 					${RESOURCE_PATH}/ota.cpp
 					${RESOURCE_PATH}/job.cpp
+					${RESOURCE_PATH}/app.cpp
 					)	
 
 idf_component_register(SRCS main.cpp
@@ -19,6 +20,8 @@ idf_component_register(SRCS main.cpp
 							job.cpp
 							types/rtc_time.cpp
 							types/job.cpp
+							types/app/app.cpp
+							types/app/task.cpp
 							net/coap_resources.cpp
 							net/init_mesh.cpp
 							net/tasks.cpp
