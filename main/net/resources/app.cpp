@@ -65,7 +65,7 @@ static void post_app_handler(engine::message const& request,
 	ESP_LOGD(RESOURCE_TAG, "Called post app handler");
 
 	char name[app_max_name_size];
-	if(!request.payload || !request.payload_len)
+	if(!request.payload || !request.payload_len || request.payload_len <= 32)
 	{
 		response
 			.code(CoAP::Message::code::precondition_failed)
@@ -74,7 +74,10 @@ static void post_app_handler(engine::message const& request,
 		return;
 	}
 
-	if(!init_app_task(make_name(name, request.payload, request.payload_len)))
+	if(!init_app_task(make_name(name,
+						static_cast<const unsigned char*>(request.payload) + 32,
+						request.payload_len - 32),
+					static_cast<const std::uint8_t*>(request.payload)))
 	{
 		response
 			.code(CoAP::Message::code::internal_server_error)
@@ -93,7 +96,7 @@ static void put_app_handler(engine::message const& request,
 {
 	ESP_LOGD(RESOURCE_TAG, "Called put app handler");
 
-	if(!request.payload || !request.payload_len)
+	if(!request.payload || !request.payload_len || request.payload_len <= sizeof(std::int32_t))
 	{
 		response
 			.code(CoAP::Message::code::precondition_failed)
@@ -102,17 +105,14 @@ static void put_app_handler(engine::message const& request,
 		return;
 	}
 
-	int arg = 0;
-	const void* value = nullptr;
-	unsigned length;
-	if(CoAP::Message::query_by_key(request, "arg", &value, length) && length)
-	{
-		arg = std::strtoll(static_cast<const char*>(value), nullptr, 10);
-	}
-
+	std::int32_t arg = *static_cast<const int*>(request.payload);
 	int ret;
 	char name[app_max_name_size];
-	app_status status = execute_app(make_name(name, request.payload, request.payload_len), arg, ret);
+	app_status status = execute_app(make_name(name,
+									static_cast<const char*>(request.payload) + sizeof(std::int32_t),
+									request.payload_len - sizeof(std::int32_t)),
+									arg, ret);
+
 	if(status != app_status::success)
 	{
 		response

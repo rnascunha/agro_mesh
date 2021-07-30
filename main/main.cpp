@@ -2,6 +2,7 @@
 #include "init.hpp"
 #include "storage.hpp"
 #include "job.hpp"
+#include "mbedtls/md.h"
 
 #ifdef CONFIG_ENABLE_HEARTBEAT_TASK
 #include "freertos/FreeRTOS.h"

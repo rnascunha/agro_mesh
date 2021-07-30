@@ -1,0 +1,1 @@
+Prints "hello world" and the argument passed. Always returns 2.

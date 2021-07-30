@@ -8,6 +8,7 @@
 #include <malloc.h>
 #include <unistd.h>
 #include "loader.h"
+#include "driver/gpio.h"
 
 #define TAG "app"
 
@@ -18,6 +19,7 @@ extern const char *base_path;
 static const ELFLoaderSymbol_t exports[] = {
     { "puts", (void*) puts },
     { "printf", (void*) printf },
+	{ "gpio_set_level", (void*)gpio_set_level}
 };
 
 static const ELFLoaderEnv_t env = {
