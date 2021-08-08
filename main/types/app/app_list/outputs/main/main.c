@@ -6,7 +6,7 @@
 #define OFF					1
 #define ON					2
 
-#define SHIFT(x, arg)		((arg >> (2 * (x - 1))) && 0b11)
+#define SHIFT(x, arg)		((arg >> (2 * (x - 1))) & 0b11)
 
 static inline void set_output(gpio_num_t num, uint32_t arg)
 {

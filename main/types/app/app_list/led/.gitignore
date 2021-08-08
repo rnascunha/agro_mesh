@@ -1,0 +1,4 @@
+build/
+*-objdump.txt
+*.elf
+*-readelf.txt

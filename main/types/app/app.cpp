@@ -63,10 +63,15 @@ app_status get_app_list(unsigned char* buffer,
 	if(!storage_is_mounted()) return app_status::not_mounted;
 
 	FILE *f = fopen(app_list, "rb");
-	if(!f) return app_status::file_list_error;
+	if(!f)
+	{
+		ESP_LOGE(TAG, "[get_app] Error opeining app list file");
+		return app_status::file_list_error;
+	}
 	if(read_from) fseek(f, read_from, SEEK_SET);
 
 	readed = fread(buffer, 1, size, f);
+	ESP_LOGI(TAG, "[get_app_list] readed = %u", readed);
 	fclose(f);
 
 	return app_status::success;
@@ -76,13 +81,19 @@ app_status get_app(app& app_, const char* name) noexcept
 {
 	if(!storage_is_mounted()) return app_status::not_mounted;
 
+	ESP_LOGI(TAG, "[get_app] Search %s", name);
 	FILE *f = fopen(app_list, "rb");
-	if(!f) return app_status::file_list_error;
+	if(!f)
+	{
+		ESP_LOGE(TAG, "[get_app] Error opeining app list file");
+		return  app_status::file_list_error;
+	}
 
 	bool finded = false;
 	do{
 		unsigned size_read = fread(reinterpret_cast<char*>(&app_), 1, sizeof(app), f);
 		if(!size_read) break;
+		ESP_LOGI(TAG, "[get_app] readed = %u / name = %s", size_read, app_.name);
 		if(strcmp(app_.name, name) == 0)
 		{
 			finded = true;
@@ -102,10 +113,14 @@ app_status add_app(const char* name, unsigned size) noexcept
 	app_status status = get_app(app_, name);
 	if(status == app_status::success) return app_status::already_exists;
 
-	FILE *f = fopen(app_list, "wa");
-	if(!f) return app_status::file_list_error;
+	FILE *f = fopen(app_list, "a+b");
+	if(!f)
+	{
+		ESP_LOGE(TAG, "[add_app] Error opeining app list file");
+		return app_status::file_list_error;
+	}
 
-	strncpy(app_.name, name, 32);
+	strncpy(app_.name, name, app_max_name_size);
 	app_.size = size;
 
 	fwrite(reinterpret_cast<char*>(&app_), 1, sizeof(app), f);
@@ -121,10 +136,15 @@ app_status delete_app(const char* name) noexcept
 	ESP_LOGI(TAG, "APP to delete %s", name);
 
 	FILE *f = fopen(app_list, "rb");
-	if(!f) return app_status::file_list_error;
+	if(!f)
+	{
+		ESP_LOGE(TAG, "[delete_app] Error opeining app list file");
+		return app_status::file_list_error;
+	}
 	FILE *temp = fopen(app_temp, "wb");
 	if(!temp)
 	{
+		ESP_LOGE(TAG, "[delete_app] Error opeining temp file");
 		fclose(f);
 		return app_status::file_list_error;
 	}
@@ -165,7 +185,11 @@ app_status execute_app(const char* name, int args, int& ret) noexcept
 
 	app app_;
 	app_status status = get_app(app_, name);
-	if(status != app_status::success) return status;
+	if(status != app_status::success)
+	{
+		ESP_LOGE(TAG, "[exec_app] get_app not found = %s", name);
+		return status;
+	}
 
 	unsigned char* app_buf = (unsigned char*)malloc(sizeof(unsigned char) * app_.size);
 	if(!app_buf) return app_status::allocation_error;
@@ -174,14 +198,14 @@ app_status execute_app(const char* name, int args, int& ret) noexcept
 	FILE* f = fopen(make_file_path(buffer, name), "rb");
 	if(!f)
 	{
-		ESP_LOGE(TAG, "Error opening file");
+		ESP_LOGE(TAG, "[exec_app] Error opening file = %s", name);
 		return app_status::file_list_error;
 	}
 	unsigned readed = fread(app_buf, 1, app_.size, f);
 	fclose(f);
 	if(readed != app_.size)
 	{
-		ESP_LOGE(TAG, "Readed less than should [%u-%u]", readed, app_.size);
+		ESP_LOGE(TAG, "[exec_app] Readed less than should [%u-%u]", readed, app_.size);
 		return app_status::file_list_error;
 	}
 

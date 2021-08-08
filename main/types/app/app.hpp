@@ -3,10 +3,14 @@
 
 #include <cstdint>
 
-static constexpr const unsigned app_max_name_size = 32;
+#if defined(CONFIG_FATFS_LFN_HEAP) || defined(CONFIG_FATFS_LFN_STACK)
+static constexpr const unsigned app_max_name_size = CONFIG_FATFS_MAX_LFN;
+#else /* CONFIG_FATFS_LFN_NONE */
+static constexpr const unsigned app_max_name_size = 12;
+#endif
 
 struct app{
-	char		name[app_max_name_size];
+	char		name[app_max_name_size + 1];
 	unsigned 	size = 0;
 };
 

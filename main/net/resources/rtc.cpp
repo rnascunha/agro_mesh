@@ -190,9 +190,10 @@ static void put_fuse_handler(engine::message const& request,
 }
 
 engine::resource_node res_rtc_time("rtc",
-									get_rtc_time_handler,
-									nullptr,
-									put_rtc_time_handler);
+									get_rtc_time_handler,	//get
+									nullptr,				//port
+									put_rtc_time_handler,	//put
+									nullptr);				//delete
 
 engine::resource_node res_fuse_time("fuse",
 									get_fuse_handler,

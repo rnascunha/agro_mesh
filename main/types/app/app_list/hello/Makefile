@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := hello_world
+PROJECT_NAME := hello
 
 module: ${PROJECT_NAME}.elf ${PROJECT_NAME}-readelf.txt ${PROJECT_NAME}-objdump.txt 
 

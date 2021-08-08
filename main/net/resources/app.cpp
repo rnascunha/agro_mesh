@@ -8,9 +8,8 @@ extern const char* RESOURCE_TAG;
 
 static char* make_name(char* name, const void* data, unsigned name_size) noexcept
 {
-	unsigned size = name_size > app_max_name_size - 1 ? app_max_name_size - 1 : name_size;
-	std::memcpy(name, data, size);
-	name[size] = '\0';
+	std::memcpy(name, data, name_size);
+	name[name_size] = '\0';
 
 	return name;
 }
@@ -64,7 +63,6 @@ static void post_app_handler(engine::message const& request,
 {
 	ESP_LOGD(RESOURCE_TAG, "Called post app handler");
 
-	char name[app_max_name_size];
 	if(!request.payload || !request.payload_len || request.payload_len <= 32)
 	{
 		response
@@ -74,6 +72,19 @@ static void post_app_handler(engine::message const& request,
 		return;
 	}
 
+	/**
+	 * Checking file name size
+	 */
+	if((request.payload_len - 32) > app_max_name_size)
+	{
+		response
+			.code(CoAP::Message::code::precondition_failed)
+			.payload("file name too long")
+			.serialize();
+		return;
+	}
+
+	char name[app_max_name_size + 1];
 	if(!init_app_task(make_name(name,
 						static_cast<const unsigned char*>(request.payload) + 32,
 						request.payload_len - 32),
@@ -105,9 +116,21 @@ static void put_app_handler(engine::message const& request,
 		return;
 	}
 
+	/**
+	 * Checking file name size
+	 */
+	if((request.payload_len - sizeof(int32_t)) > app_max_name_size)
+	{
+		response
+			.code(CoAP::Message::code::precondition_failed)
+			.payload("file name too long")
+			.serialize();
+		return;
+	}
+
 	std::int32_t arg = *static_cast<const int*>(request.payload);
 	int ret;
-	char name[app_max_name_size];
+	char name[app_max_name_size + 1];
 	app_status status = execute_app(make_name(name,
 									static_cast<const char*>(request.payload) + sizeof(std::int32_t),
 									request.payload_len - sizeof(std::int32_t)),
@@ -143,7 +166,19 @@ static void delete_app_handler(engine::message const& request,
 		return;
 	}
 
-	char name[app_max_name_size];
+	/**
+	 * Checking file name size
+	 */
+	if(request.payload_len > app_max_name_size)
+	{
+		response
+			.code(CoAP::Message::code::precondition_failed)
+			.payload("file name too long")
+			.serialize();
+		return;
+	}
+
+	char name[app_max_name_size + 1];
 	app_status status = delete_app(make_name(name, request.payload, request.payload_len));
 	if(status != app_status::success)
 	{

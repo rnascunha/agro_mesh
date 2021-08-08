@@ -33,6 +33,25 @@ static struct {
 	}
 } app_transfer_data;
 
+static void print_hash(const std::uint8_t* hash) noexcept
+{
+	for(int i = 0; i < 32; i++)
+		printf("%02X ", hash[i]);
+}
+
+static void print_app_struct()
+{
+	printf("App struct:\n\tname[%s]\n\tsize[%u]\n\tfile_name[%s]\n\thash[",
+			app_transfer_data.data.name,
+			app_transfer_data.data.size,
+			app_transfer_data.file_name);
+	print_hash(app_transfer_data.hash);
+	printf("]\n\ttotal_size[%u]\n\tnext_block[%u]\n",
+			app_transfer_data.total_size,
+			app_transfer_data.next_block);
+
+}
+
 static void send_app_info(engine& eng, app_status status) noexcept
 {
 	CoAP::Error ec;
@@ -126,6 +145,7 @@ static void request_app_cb(void const* trans,
 			FILE* f = fopen(app_transfer_data.file_name, "a+b");
 			if(!f)
 			{
+				ESP_LOGE(TAG, "[request_app_cb] error opening file = [%s]", app_transfer_data.file_name);
 				fail_app_task(app_status::file_list_error, app_task_handler);
 				return;
 			}
@@ -215,6 +235,8 @@ static void app_task(void*)
 		vTaskDelete(NULL);
 		return;
 	}
+
+	print_app_struct();
 
 	//Making dummy endpoint
 	mesh_addr_t addr{};
