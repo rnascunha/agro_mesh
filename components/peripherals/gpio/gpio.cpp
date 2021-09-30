@@ -29,6 +29,11 @@ int GPIO_Basic::read(){
 	return level;
 }
 
+void GPIO_Basic::reset() noexcept
+{
+	gpio_reset_pin(num);
+}
+
 void GPIO_Basic::pull(gpio_pull_mode_t mode){
 	gpio_set_pull_mode(num, mode);
 }

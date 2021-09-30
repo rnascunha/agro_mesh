@@ -39,10 +39,14 @@ struct __attribute__((packed)) sensor_data{
 	std::uint8_t	wl2:1;
 	std::uint8_t	wl3:1;
 	std::uint8_t	wl4:1;
+	std::uint8_t	gp1:1;
+	std::uint8_t	gp2:1;
+	std::uint8_t	gp3:1;
+	std::uint8_t	gp4:1;
 	std::uint8_t	ac1:1;
 	std::uint8_t	ac2:1;
 	std::uint8_t	ac3:1;
-	std::uint8_t	:1;
+	std::uint8_t	:5;
 	int8_t			rssi;
 };
 

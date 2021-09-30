@@ -37,6 +37,15 @@ GPIO_Basic water_level[]{
 
 const std::size_t water_level_count = sizeof(water_level) / sizeof(water_level[0]);
 
+GPIO_Basic gpio_generic[]{
+		GPIO_Basic{GPIO_GENERIC1},
+		GPIO_Basic{GPIO_GENERIC1},
+		GPIO_Basic{GPIO_GENERIC1},
+		GPIO_Basic{GPIO_GENERIC1}
+};
+
+const std::size_t gpio_generic_count = sizeof(gpio_generic) / sizeof(gpio_generic[0]);
+
 I2C_Master i2c(I2C_NUM_0, I2C_SCL, I2C_SDA, I2C_FAST_SPEED_HZ);
 std::uint8_t temp_sensor_count = false;
 
@@ -70,9 +79,18 @@ void init_io() noexcept
 
 	for(std::size_t i = 0; i < water_level_count; i++)
 	{
+		water_level[i].pull(GPIO_PULLUP_ONLY);
 		water_level[i].mode(GPIO_MODE_INPUT);
 		water_level[i].enable_interrupt(GPIO_INTR_ANYEDGE);
 		water_level[i].register_interrupt(gpio_input_interrput, nullptr);
+	}
+
+	for(std::size_t i = 0; i < gpio_generic_count; i++)
+	{
+		gpio_generic[i].pull(GPIO_PULLUP_ONLY);
+		gpio_generic[i].mode(GPIO_MODE_INPUT);
+		gpio_generic[i].enable_interrupt(GPIO_INTR_ANYEDGE);
+		gpio_generic[i].register_interrupt(gpio_input_interrput, nullptr);
 	}
 
 	i2c.init();

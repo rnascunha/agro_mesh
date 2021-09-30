@@ -16,6 +16,10 @@
 #include "coap_engine.hpp"
 #include "messages/send.hpp"
 
+#include "../blink.hpp"
+
+BLINK_INTERVAL_EXTERN
+
 #define TAG							"AGRO_MESH"
 
 #define CONFIG_MESH_AP_PASSWD		"MAP_PASSWD"
@@ -142,6 +146,7 @@ static void mesh_event_handler(void *arg, esp_event_base_t event_base,
 			{
 				esp_netif_dhcpc_start(netif_sta);
 			}
+			SET_BLINK_MS(BLINK_MS_CONNECTED);
 			coap_mesh_start();
 		}
 		break;
@@ -155,6 +160,9 @@ static void mesh_event_handler(void *arg, esp_event_base_t event_base,
 		        init_packets_sended = true;
 			}
 		}
+		break;
+		case MESH_EVENT_PARENT_DISCONNECTED:
+			SET_BLINK_MS(BLINK_MS_NOT_CONNECTED);
 		break;
 		default:
 			break;

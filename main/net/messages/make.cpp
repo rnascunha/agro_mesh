@@ -17,6 +17,7 @@ extern std::uint8_t temp_sensor_count;
 extern RTC_Time device_clock;
 extern Dallas_Temperature temp_sensor;
 extern GPIO_Basic water_level[];
+extern GPIO_Basic gpio_generic[];
 extern GPIO_Basic ac_load[];
 
 
@@ -89,6 +90,11 @@ sensor_data* make_sensor_data(sensor_data& sen) noexcept
 	sen.wl2 = water_level[1].read();
 	sen.wl3 = water_level[2].read();
 	sen.wl4 = water_level[3].read();
+
+	sen.gp1 = gpio_generic[0].read();
+	sen.gp2 = gpio_generic[1].read();
+	sen.gp3 = gpio_generic[2].read();
+	sen.gp4 = gpio_generic[3].read();
 
 	sen.ac1 = ac_load[0].read();
 	sen.ac2 = ac_load[1].read();

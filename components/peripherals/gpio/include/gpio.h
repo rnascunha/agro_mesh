@@ -19,6 +19,8 @@ class GPIO_Basic{
 		void toggle();
 		int read();
 
+		void reset() noexcept;
+
 		void register_interrupt(gpio_isr_t handler, void* isr_args);
 		void unregister_interrupt();
 
