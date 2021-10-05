@@ -39,9 +39,9 @@ const std::size_t water_level_count = sizeof(water_level) / sizeof(water_level[0
 
 GPIO_Basic gpio_generic[]{
 		GPIO_Basic{GPIO_GENERIC1},
-		GPIO_Basic{GPIO_GENERIC1},
-		GPIO_Basic{GPIO_GENERIC1},
-		GPIO_Basic{GPIO_GENERIC1}
+		GPIO_Basic{GPIO_GENERIC2},
+		GPIO_Basic{GPIO_GENERIC3},
+		GPIO_Basic{GPIO_GENERIC4}
 };
 
 const std::size_t gpio_generic_count = sizeof(gpio_generic) / sizeof(gpio_generic[0]);
