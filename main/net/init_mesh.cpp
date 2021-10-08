@@ -207,7 +207,7 @@ void init_mesh() noexcept
 
 	mesh_cfg_t cfg = {};
 	cfg.crypto_funcs = &g_wifi_default_mesh_crypto_funcs;
-	esp_mesh_allow_root_conflicts(false);
+	esp_mesh_allow_root_conflicts(true);
 	/* mesh ID */
 	memcpy((uint8_t *) &cfg.mesh_id, MESH_ID, 6);
 	/* router */
