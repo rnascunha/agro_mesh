@@ -124,5 +124,13 @@ menu "Agro Mesh Configuration"
         default 0
         help
             Enable heartbeat task (blink).
+            
+    config ROOT_ANNOUNCE_INTERVAL
+    	int "Root announce interval (milliseconds)"
+    	range 1000 3600000
+    	default 5000
+    	help
+            Set the time interval that the device, if root, will send a 'keepalive'
+            packet to the daemon.
 endmenu
 

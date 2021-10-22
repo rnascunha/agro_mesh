@@ -7,6 +7,7 @@
 
 #include "esp_log.h"
 #include "esp_mesh.h"
+#include "esp_timer.h"
 
 #include "messages/send.hpp"
 #include "types.hpp"
@@ -43,6 +44,30 @@ void coap_te_engine(void*) noexcept
 	Packet_Type t = Packet_Type::no_packet;
 	xQueueSend(send_data_queue, &t, 0);
 	vTaskDelete(NULL);
+}
+
+/**
+ * When device is root, this function will be called to send the route packet to
+ * the daemon as a "keepalive".
+ */
+
+static constexpr const unsigned int announce_interval = CONFIG_ROOT_ANNOUNCE_INTERVAL; //miliseconds
+static unsigned int last_announce_root = 0;	//miliseconds
+
+static void announce_root()
+{
+	unsigned int time_ms = static_cast<unsigned int>(esp_timer_get_time() / 1000);
+	if((time_ms - last_announce_root) > announce_interval)
+	{
+		ESP_LOGD(TAG, "Announcing root...");
+		CoAP::Error ec;
+		send_route(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+		if(ec)
+		{
+			ESP_LOGE(TAG, "Error announcing [%d/%s]", ecp.value(), ecp.message());
+		}
+		last_announce_root = time_ms;
+	}
 }
 
 /**
@@ -107,6 +132,9 @@ void coap_forward_proxy(void*) noexcept
 		{
 			ESP_LOGE(TAG, "Error proxy [%d/%s]", ec.value(), ec.message());
 		}
+
+		//Anncouncing root to daemon (keepalive)
+		announce_root();
 	}
 	ESP_LOGD(TAG, "Proxy forwaring task end");
 

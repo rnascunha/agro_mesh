@@ -24,7 +24,7 @@
 #define HASH_LEN 32 /* SHA-256 digest length */
 
 static const char *TAG = "OTA";
-extern const std::size_t image_name_max_size = 30;
+extern const std::size_t image_name_max_size = 31;
 
 #define PAYLOAD_SIZE		CONFIG_BUFFER_TRANSACTION_PAYLOAD
 
