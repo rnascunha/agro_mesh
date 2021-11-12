@@ -4,11 +4,9 @@
 #include "../../../types/rtc_time.hpp"
 
 static constexpr const char* route_path = "route";
-static constexpr const char* status_path = "status";
 static constexpr const char* config_path = "config";
 static constexpr const char* full_config_path = "full_config";
 static constexpr const char* board_path = "board";
-static constexpr const char* sensor_path = "sensor";
 static constexpr const char* info_path = "info";
 
 extern RTC_Time device_clock;
@@ -42,37 +40,6 @@ std::size_t send_route(Engine& eng, CoAP::Message::type mtype, CoAP::Error& ec) 
 		.add_option(uri_path)
 		.add_option(content_format)
 		.payload(buffer, size);
-
-	return eng.send(req, ec);
-}
-
-template<typename Engine>
-std::size_t send_status(Engine& eng, CoAP::Message::type mtype, CoAP::Error& ec) noexcept
-{
-	if(mtype != CoAP::Message::type::confirmable
-		&& mtype != CoAP::Message::type::nonconfirmable)
-	{
-		ec = CoAP::errc::type_invalid;
-		return 0;
-	}
-
-	//Payload
-	status sts;
-	make_status(sts);
-
-	//Making dummy endpoint
-	mesh_addr_t addr{};
-	addr.mip.port = htons(5683);
-	typename Engine::endpoint ep{addr, CoAP::Port::ESP_Mesh::endpoint_type::to_external};
-	//Making request
-	CoAP::Message::content_format ct{CoAP::Message::content_format::application_octet_stream};
-	CoAP::Message::Option::node uri_path{CoAP::Message::Option::code::uri_path, status_path},
-									content_format{ct};
-	typename Engine::request req{ep};
-	req.header(mtype, CoAP::Message::code::put)
-		.add_option(uri_path)
-		.add_option(content_format)
-		.payload(&sts, sizeof(status));
 
 	return eng.send(req, ec);
 }
@@ -175,7 +142,7 @@ std::size_t send_board_config(Engine& eng, CoAP::Message::type mtype, CoAP::Erro
 }
 
 template<typename Engine>
-std::size_t send_sensor_data(Engine& eng, CoAP::Message::type mtype, CoAP::Error& ec) noexcept
+std::size_t send_sensors_data(Engine& eng, CoAP::Message::type mtype, CoAP::Error& ec) noexcept
 {
 	if(mtype != CoAP::Message::type::confirmable
 		&& mtype != CoAP::Message::type::nonconfirmable)
@@ -185,7 +152,8 @@ std::size_t send_sensor_data(Engine& eng, CoAP::Message::type mtype, CoAP::Error
 	}
 
 	//Payload
-	sensor_data data;
+	uint8_t dataaa[32];
+	size_t size = make_sensors_data(dataaa, 32);
 
 	//Making dummy endpoint
 	mesh_addr_t addr{};
@@ -193,13 +161,14 @@ std::size_t send_sensor_data(Engine& eng, CoAP::Message::type mtype, CoAP::Error
 	typename Engine::endpoint ep{addr, CoAP::Port::ESP_Mesh::endpoint_type::to_external};
 	//Making request
 	CoAP::Message::content_format ct{CoAP::Message::content_format::application_octet_stream};
-	CoAP::Message::Option::node uri_path{CoAP::Message::Option::code::uri_path, sensor_path},
+	CoAP::Message::Option::node uri_path{CoAP::Message::Option::code::uri_path, "sensors"},
 									content_format{ct};
 	typename Engine::request req{ep};
+
 	req.header(mtype, CoAP::Message::code::put)
 		.add_option(uri_path)
 		.add_option(content_format)
-		.payload(make_sensor_data(data), sizeof(sensor_data));
+		.payload(dataaa, size);
 
 	return eng.send(req, ec);
 }

@@ -49,7 +49,7 @@ template<bool RemoveSelf /* = true */>
 std::size_t make_full_config(void* buffer, std::size_t buffer_len,
 				CoAP::Error& ec) noexcept
 {
-	if(buffer_len < (sizeof(config) + sizeof(status) + sizeof(route)))
+	if(buffer_len < (sizeof(config) + sizeof(int8_t) + sizeof(route)))
 	{
 		ec = CoAP::errc::insufficient_buffer;
 		return 0;
@@ -58,10 +58,13 @@ std::size_t make_full_config(void* buffer, std::size_t buffer_len,
 	full_config* msg = reinterpret_cast<full_config*>(buffer);
 
 	make_config(msg->fconfig);
-	make_status(msg->fstatus);
 
-	return make_route<RemoveSelf>(&msg->froute, buffer_len - sizeof(config) - sizeof(status), ec)
-			+ sizeof(config) + sizeof(status);
+	wifi_ap_record_t ap;
+	esp_wifi_sta_get_ap_info(&ap);
+	msg->rssi = ap.rssi;
+
+	return make_route<RemoveSelf>(&msg->froute, buffer_len - sizeof(config) - sizeof(int8_t), ec)
+			+ sizeof(config) + sizeof(int8_t);
 }
 
 #endif /* AGRO_MESH_NET_MESSAGES_MAKE_IMPL_HPP__ */

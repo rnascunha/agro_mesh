@@ -1,11 +1,9 @@
 set(RESOURCE_PATH	net/resources)
 set(RESOURCE_LIST	${RESOURCE_PATH}/ac_load.cpp
 					${RESOURCE_PATH}/rtc.cpp
-					${RESOURCE_PATH}/sensors.cpp
 					${RESOURCE_PATH}/system.cpp
 					${RESOURCE_PATH}/led.cpp
 					${RESOURCE_PATH}/net.cpp
-#					${RESOURCE_PATH}/server.cpp
 					${RESOURCE_PATH}/version.cpp
 					${RESOURCE_PATH}/discovery.cpp
 					${RESOURCE_PATH}/packets.cpp
@@ -22,6 +20,7 @@ idf_component_register(SRCS main.cpp
 							types/job.cpp
 							types/app/app.cpp
 							types/app/task.cpp
+							types/sensor_type.cpp
 							net/coap_resources.cpp
 							net/init_mesh.cpp
 							net/tasks.cpp

@@ -9,6 +9,8 @@
 #include "dallas_temperature.h"
 #include "gpio.h"
 #include "../../types/rtc_time.hpp"
+#include "../../types/sensor_type.hpp"
+#include "../../types/sensor_type_list.hpp"
 
 //extern bool rtc_present;
 extern std::uint8_t temp_sensor_count;
@@ -19,6 +21,20 @@ extern Dallas_Temperature temp_sensor;
 extern GPIO_Basic water_level[];
 extern GPIO_Basic gpio_generic[];
 extern GPIO_Basic ac_load[];
+
+#define INVALID_TEMPERATURE		(-127.0)
+
+static float read_temperature_retry(unsigned retry_times) noexcept
+{
+	do{
+		temp_sensor.requestTemperatures();
+		float temp = temp_sensor.getTempCByIndex(0);
+		if(temp != INVALID_TEMPERATURE)
+			return temp;
+	}while(retry_times--);
+
+	return INVALID_TEMPERATURE;
+}
 
 
 config* make_config(config& cfg) noexcept
@@ -35,16 +51,6 @@ config* make_config(config& cfg) noexcept
 	cfg.channel_conn = ap.primary;
 
 	return &cfg;
-}
-
-status* make_status(status& sts) noexcept
-{
-	wifi_ap_record_t ap;
-	esp_wifi_sta_get_ap_info(&ap);
-
-	sts.rssi = ap.rssi;
-
-	return &sts;
 }
 
 std::size_t make_board_config(void* buffer, std::size_t buffer_len,
@@ -73,37 +79,39 @@ std::size_t make_board_config(void* buffer, std::size_t buffer_len,
 	return sizeof(bc) + fw_size + 1 + hw_size;
 }
 
-sensor_data* make_sensor_data(sensor_data& sen) noexcept
+size_t make_sensors_data(uint8_t* data, size_t size) noexcept
 {
-	if(temp_sensor_count > 0)
-		temp_sensor.requestTemperatures();
-	else sen.temp = 0;
-
-	sen.time = device_clock.get_time();
-
+	Sensor_Builder builder(data, size);
 	if(temp_sensor_count > 0)
 	{
-		sen.temp = temp_sensor.getTempCByIndex(0);
+		float temp = read_temperature_retry(2);
+		if(temp != INVALID_TEMPERATURE)
+		{
+			builder.add(SENSOR_TYPE_TEMP, temp);
+		}
 	}
-
-	sen.wl1 = water_level[0].read();
-	sen.wl2 = water_level[1].read();
-	sen.wl3 = water_level[2].read();
-	sen.wl4 = water_level[3].read();
-
-	sen.gp1 = gpio_generic[0].read();
-	sen.gp2 = gpio_generic[1].read();
-	sen.gp3 = gpio_generic[2].read();
-	sen.gp4 = gpio_generic[3].read();
-
-	sen.ac1 = ac_load[0].read();
-	sen.ac2 = ac_load[1].read();
-	sen.ac3 = ac_load[2].read();
 
 	wifi_ap_record_t ap;
 	esp_wifi_sta_get_ap_info(&ap);
+	builder.add(SENSOR_TYPE_RSSI, ap.rssi);
 
-	sen.rssi = ap.rssi;
+	unsigned bit_array = 0;
 
-	return &sen;
+	bit_array |= (water_level[0].read() << 0);
+	bit_array |= (water_level[1].read() << 1);
+	bit_array |= (water_level[2].read() << 2);
+	bit_array |= (water_level[3].read() << 3);
+
+	bit_array |= (gpio_generic[0].read() << 4);
+	bit_array |= (gpio_generic[1].read() << 5);
+	bit_array |= (gpio_generic[2].read() << 6);
+	bit_array |= (gpio_generic[3].read() << 7);
+
+	bit_array |= (ac_load[0].read() << 8);
+	bit_array |= (ac_load[1].read() << 9);
+	bit_array |= (ac_load[2].read() << 10);
+
+	builder.add(SENSOR_TYPE_GPIOS, bit_array);
+
+	return builder.size();
 }

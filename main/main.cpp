@@ -20,6 +20,7 @@ void heartbeat(void*)
 		led.toggle();
 		vTaskDelay(interval_blink / portTICK_RATE_MS);
 	}
+	vTaskDelete(NULL);
 }
 #endif /* CONFIG_ENABLE_HEARTBEAT_TASK */
 
@@ -33,8 +34,10 @@ extern "C" void app_main(void)
 	init_coap_resources();
 //	init_job_task();
 
+
+
 #ifdef CONFIG_ENABLE_HEARTBEAT_TASK
-	xTaskCreate(&heartbeat, "heart", 512, NULL, 5, NULL);
+	xTaskCreate(&heartbeat, "heart", 768, NULL, 5, NULL);
 #endif /* CONFIG_ENABLE_HEARTBEAT_TASK */
 }
 

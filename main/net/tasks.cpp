@@ -151,7 +151,8 @@ void coap_send_main(void*) noexcept
 	while(coap_engine_started)
 	{
 		CoAP::Error ec;
-		send_sensor_data(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+//		send_sensor_data(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+		send_sensors_data(coap_engine, CoAP::Message::type::nonconfirmable, ec);
 		if(ec)
 		{
 			ESP_LOGE(TAG, "ERROR sending time request [%d/%s]...", ec.value(), ec.message());
@@ -181,7 +182,7 @@ void send_async_data(void*) noexcept
 				case Packet_Type::sensor:
 				{
 					CoAP::Error ec;
-					send_sensor_data(coap_engine, CoAP::Message::type::nonconfirmable, ec);
+					send_sensors_data(coap_engine, CoAP::Message::type::nonconfirmable, ec);
 				}
 				break;
 				default:

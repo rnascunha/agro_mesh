@@ -4,11 +4,12 @@
 
 extern const char* RESOURCE_TAG;
 
-static void get_packet_sensor_handler(engine::message const&, engine::response& response, void*) noexcept
+static void get_packet_sensors_handler(engine::message const&, engine::response& response, void*) noexcept
 {
-	ESP_LOGD(RESOURCE_TAG, "Called get packet sensor handler");
+	ESP_LOGD(RESOURCE_TAG, "Called get packet sensors handler");
 
-	sensor_data data;
+	uint8_t data[24];
+	size_t size = make_sensors_data(data, 24);
 
 	CoAP::Message::content_format format = CoAP::Message::content_format::application_octet_stream;
 	CoAP::Message::Option::node content{format};
@@ -16,7 +17,7 @@ static void get_packet_sensor_handler(engine::message const&, engine::response& 
 	response
 		.code(CoAP::Message::code::content)
 		.add_option(content)
-		.payload(make_sensor_data(data), sizeof(config))
+		.payload(data, size)
 		.serialize();
 }
 
@@ -47,7 +48,7 @@ static void get_packet_board_handler(engine::message const&, engine::response& r
 		.serialize();
 }
 
-engine::resource_node res_packet_sensor{"sensor",
-							get_packet_sensor_handler};
+engine::resource_node res_packet_sensors{"sensors",
+							get_packet_sensors_handler};
 engine::resource_node res_packet_board{"board",
 							get_packet_board_handler};
