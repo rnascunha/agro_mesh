@@ -20,7 +20,8 @@ idf_component_register(SRCS main.cpp
 							types/job.cpp
 							types/app/app.cpp
 							types/app/task.cpp
-							types/sensor_type.cpp
+							sensor/sensor_type.cpp
+							sensor/read_sensor.cpp
 							net/coap_resources.cpp
 							net/init_mesh.cpp
 							net/tasks.cpp

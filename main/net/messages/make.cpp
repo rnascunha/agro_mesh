@@ -6,36 +6,14 @@
 #include <cstring>
 #include "../../version.hpp"
 
-#include "dallas_temperature.h"
-#include "gpio.h"
 #include "../../types/rtc_time.hpp"
-#include "../../types/sensor_type.hpp"
-#include "../../types/sensor_type_list.hpp"
 
-//extern bool rtc_present;
+#include "../../sensor/read_sensor.hpp"
+#include "../../sensor/sensor_type.hpp"
+#include "../../sensor/sensor_type_list.hpp"
+
 extern std::uint8_t temp_sensor_count;
-
-//extern DS3231 rtc;
 extern RTC_Time device_clock;
-extern Dallas_Temperature temp_sensor;
-extern GPIO_Basic water_level[];
-extern GPIO_Basic gpio_generic[];
-extern GPIO_Basic ac_load[];
-
-#define INVALID_TEMPERATURE		(-127.0)
-
-static float read_temperature_retry(unsigned retry_times) noexcept
-{
-	do{
-		temp_sensor.requestTemperatures();
-		float temp = temp_sensor.getTempCByIndex(0);
-		if(temp != INVALID_TEMPERATURE)
-			return temp;
-	}while(retry_times--);
-
-	return INVALID_TEMPERATURE;
-}
-
 
 config* make_config(config& cfg) noexcept
 {
@@ -95,21 +73,7 @@ size_t make_sensors_data(uint8_t* data, size_t size) noexcept
 	esp_wifi_sta_get_ap_info(&ap);
 	builder.add(SENSOR_TYPE_RSSI, ap.rssi);
 
-	unsigned bit_array = 0;
-
-	bit_array |= (water_level[0].read() << 0);
-	bit_array |= (water_level[1].read() << 1);
-	bit_array |= (water_level[2].read() << 2);
-	bit_array |= (water_level[3].read() << 3);
-
-	bit_array |= (gpio_generic[0].read() << 4);
-	bit_array |= (gpio_generic[1].read() << 5);
-	bit_array |= (gpio_generic[2].read() << 6);
-	bit_array |= (gpio_generic[3].read() << 7);
-
-	bit_array |= (ac_load[0].read() << 8);
-	bit_array |= (ac_load[1].read() << 9);
-	bit_array |= (ac_load[2].read() << 10);
+	unsigned bit_array = read_gpios();
 
 	builder.add(SENSOR_TYPE_GPIOS, bit_array);
 

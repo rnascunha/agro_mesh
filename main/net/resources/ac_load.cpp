@@ -3,6 +3,10 @@
 
 #include "gpio.h"
 
+#include "../../sensor/sensor_type_list.hpp"
+#include "../../sensor/sensor_type.hpp"
+#include "../../sensor/read_sensor.hpp"
+
 extern const char* RESOURCE_TAG;
 
 extern GPIO_Basic ac_load[];
@@ -11,7 +15,6 @@ static void get_ac_load_handler(engine::message const&,
 								engine::response& response, void*) noexcept
 {
 	ESP_LOGD(RESOURCE_TAG, "Called get ac load handler");
-
 
 	/**
 	 * Option
@@ -22,12 +25,11 @@ static void get_ac_load_handler(engine::message const&,
 	/**
 	 * Payload
 	 */
-	char buffer[10];
-	snprintf(buffer, 10, "%d %d %d", ac_load[0].read(), ac_load[1].read(), ac_load[2].read());
+	sensor_type sensor{SENSOR_TYPE_GPIOS, 0, read_gpios()};
 	response
 		.code(CoAP::Message::code::content)
 		.add_option(content)
-		.payload(buffer)
+		.payload(&sensor, sizeof(sensor_type))
 		.serialize();
 }
 
@@ -77,7 +79,6 @@ static void put_ac_load_handler(engine::message const& request,
 	 * based on path
 	 */
 	unsigned index = node->value().path()[0] - '0' - 1;
-//	ESP_LOGI(RESOURCE_TAG, "Index[%s]: %u", node->value().path()[0], index);
 	/**
 	 * Setting value
 	 */
@@ -87,12 +88,10 @@ static void put_ac_load_handler(engine::message const& request,
 	/**
 	 * Payload
 	 */
-	char buf[2];
-	snprintf(buf, 2, "%c", ac_load[index].read() + '0');
-
+	sensor_type sensor{SENSOR_TYPE_GPIOS, 0, read_gpios()};
 	response
 		.code(CoAP::Message::code::changed)
-		.payload(buf)
+		.payload(&sensor, sizeof(sensor_type))
 		.serialize();
 }
 
