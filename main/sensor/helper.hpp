@@ -34,6 +34,6 @@ std::size_t send_sensors_data(CoAP::Message::type,
  *
  * @param resource node to add to coap engine root
  */
-bool add_resource(engine::resource_node&) noexcept ;
+bool add_resource(engine::resource_node&) noexcept;
 
 #endif /* AGRO_MESH_SENSOR_HELPER__ */

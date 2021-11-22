@@ -13,7 +13,7 @@
 #include "net/types.hpp"
 #include "types/rtc_time.hpp"
 
-#define TAG		"AGRO_IO"
+#define TAG		"IO"
 
 GPIO_Basic gpio_sensor(DS18B20_DATA);
 OneWire onewire(&gpio_sensor);
@@ -48,6 +48,8 @@ const std::size_t gpio_generic_count = sizeof(gpio_generic) / sizeof(gpio_generi
 
 I2C_Master i2c(I2C_NUM_0, I2C_SCL, I2C_SDA, I2C_FAST_SPEED_HZ);
 std::uint8_t temp_sensor_count = false;
+
+bool pressure_present = false;
 
 xQueueHandle send_data_queue = NULL;
 

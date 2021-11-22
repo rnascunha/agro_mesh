@@ -23,6 +23,7 @@ idf_component_register(SRCS main.cpp
 							sensor/sensor_type.cpp
 							sensor/read_sensor.cpp
 							sensor/helper.cpp
+							sensor/sensor_pressure_task.cpp
 							net/coap_resources.cpp
 							net/init_mesh.cpp
 							net/tasks.cpp

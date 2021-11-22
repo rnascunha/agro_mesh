@@ -9,7 +9,7 @@
 #define SET_BLINK_MS(x)				interval_blink = x
 #else
 #define BLINK_INTERVAL_EXTERN
-#define SET_BLINK_MS(x)			do{}while(0)
+#define SET_BLINK_MS(x)				do{}while(0)
 #endif /* CONFIG_ENABLE_HEARTBEAT_TASK */
 
 #endif /* AGRO_MESH_BLINK_DEF_HPP__ */

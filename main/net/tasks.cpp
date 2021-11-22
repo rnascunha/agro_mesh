@@ -151,7 +151,6 @@ void coap_send_main(void*) noexcept
 	while(coap_engine_started)
 	{
 		CoAP::Error ec;
-//		send_sensor_data(coap_engine, CoAP::Message::type::nonconfirmable, ec);
 		send_sensors_data(coap_engine, CoAP::Message::type::nonconfirmable, ec);
 		if(ec)
 		{
