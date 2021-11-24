@@ -1,0 +1,293 @@
+menu "Agro Mesh"
+	config MESH_ROUTER_SSID
+        string "Router SSID"
+        default "ROUTER_SSID"
+        help
+            Router SSID.
+
+    config MESH_ROUTER_PASSWD
+        string "Router password"
+        default "ROUTER_PASSWD"
+        help
+            Router password.
+
+    choice
+        bool "AP Authentication Mode"
+        default WIFI_AUTH_WPA2_PSK
+        help
+            Authentication mode.
+
+        config WIFI_AUTH_OPEN
+            bool "WIFI_AUTH_OPEN"
+        config WIFI_AUTH_WPA_PSK
+            bool "WIFI_AUTH_WPA_PSK"
+        config WIFI_AUTH_WPA2_PSK
+            bool "WIFI_AUTH_WPA2_PSK"
+        config WIFI_AUTH_WPA_WPA2_PSK
+            bool "WIFI_AUTH_WPA_WPA2_PSK"
+    endchoice
+
+    config AP_AUTHMODE
+        int
+        default 0 if WIFI_AUTH_OPEN
+        default 2 if WIFI_AUTH_WPA_PSK
+        default 3 if WIFI_AUTH_WPA2_PSK
+        default 4 if WIFI_AUTH_WPA_WPA2_PSK
+        help
+            AP authentication mode.
+            
+    choice
+        bool "Server endpoint type"
+        default ENDPOINT_IPv4
+        help
+            Choose endpoint type.
+
+        config ENDPOINT_IPv4
+            bool "IPv4"
+        config ENDPOINT_IPv6
+            bool "IPv6"
+    endchoice
+
+    config ENDPOINT_TYPE
+        int
+        default 0 if ENDPOINT_IPv4
+        default 1 if ENDPOINT_IPv6
+        help
+            Choose endpoint type.
+            
+	config SERVER_ADDR
+		string "Server Address"
+		default "192.168.0.9"
+		help
+			IP address of the server that will receive data. It must be a valid
+			IP addr (valid IPv4 or IPv6 as set at Endpoint type option)
+            
+    config SERVER_PORT
+    	int "Server Port"
+    	range 1 65535
+    	default 5683
+    	help
+            Server port that the device will connect.
+            
+    config ROOT_SERVER_PORT
+    	int "Root Server Port"
+    	range 1 65535
+    	default 5683
+    	help
+            Port that the root node UDP connection will bind.
+    
+    choice
+    	bool "Packet size (header + payload)"
+    	default PACKET_SIZE_576
+    	help
+    		Max packet size supported by a CoAP transaction, considering 
+    		header + options + payload.
+    	
+    	config PACKET_SIZE_128
+            bool "128bytes = 64h + 64p"
+        config PACKET_SIZE_320
+            bool "318bytes = 64h + 256p"
+        config PACKET_SIZE_576
+            bool "576bytes = 64h + 512p"
+        config PACKET_SIZE_1088
+            bool "1088bytes = 64h + 1024p"
+    endchoice
+    		
+    config BUFFER_TRANSACTION
+    	int
+        default 128 if PACKET_SIZE_128
+        default 320 if PACKET_SIZE_320
+        default 576 if PACKET_SIZE_576
+        default 1088 if PACKET_SIZE_1088
+        help
+    		Max packet size supported by a CoAP transaction, considering 
+    		header + options + payload.
+    
+     config BUFFER_TRANSACTION_PAYLOAD
+    	int
+        default 64 if PACKET_SIZE_128
+        default 256 if PACKET_SIZE_320
+        default 512 if PACKET_SIZE_576
+        default 1024 if PACKET_SIZE_1088
+        help
+    		Payload size of CoAP packet.
+    		
+    config TRANSACTION_NUM
+    	int "Number of transactions"
+    	range 1 50
+    	default 4
+    	help
+    		Number of simultaneous transactions that CoAP engine can hold
+    		    		
+    config ENABLE_HEARTBEAT_TASK
+        bool "Enable Heartbeat Task"
+        default 0
+        help
+            Enable heartbeat task (blink).
+            
+    config HEARTBEAT_GPIO
+    	int "GPIO to blink"
+    	depends on ENABLE_HEARTBEAT_TASK
+    	default 0
+    	range 0 32
+    	help
+    		Sets the GPIO that will be used to blink when connected/disconnected.
+    		
+    config ROOT_ANNOUNCE_INTERVAL
+    	int "Root announce interval (milliseconds)"
+    	range 1000 3600000
+    	default 5000
+    	help
+            Set the time interval that the device, if root, will send a 'keepalive'
+            packet to the daemon.
+            
+    config DEVICE_HW_VERSION
+    	string "Hardware device version"
+    	default "0.1"
+    	help
+    		Informative hardware device version. This information can be used to
+    		conditionally compile the firmware, and be retrieved by a resource.
+    		
+    menu "Modules"
+	    config ENABLE_OTA_SUPPORT
+	    	bool "Enable OTA update support"
+	    	default y
+	    	help
+	    		This will enable the OTA resource and task been compiled, supporting
+	    		over the air (OTA) update of firmware. Your partition table must support
+	    		at least 2 OTA type partitions.		
+	    		
+	   	config ENABLE_APP_SUPPORT
+	   		bool "Enable Apps"
+	   		default y
+	   		help
+	   			Apps are ELF binary that can be sent and processed by the device.
+	   			
+	   	config ENABLE_DEVICE_CLOCK
+	   		bool "Enable device clock"
+	   		default y
+	   		help
+	   			Enable device clock. To use some modules (like jobs), you need to have
+	   			clock module enabled. This will make avaiable the global instance of type
+	   			Agro::RTC_Time, 'device_clock'. This will make avaiable 2 resources:
+	   			'/rtc', to get/update the internal timer, and '/fuse' to get/configure the
+	   			device fuse. The fuse configuration is stored persistent at the NVS partition.
+	   			Also, every time the device initiate, it will request to the daemon the current
+	   			time.
+	   			
+	   	config DEVICE_CLOCK_DS3231_SUPPORT
+	   		bool "RTC DS3231 support"
+	   		depends on ENABLE_DEVICE_CLOCK
+	   		default y
+	   		help
+	   			This will enable the use of RTC DS3231 with the device_clock module. It's
+	   			of user responsability to initiate the device_clock with the DS3231 instance,
+	   			i.e., 'device_clock.init(<DS3231 instance>)'. If the instance is not initiated
+	   			with the DS3231 instance, it will work with only the internal timer.
+	   
+	   config ENABLE_JOBS_SUPPORT
+	   		bool "Enable jobs"
+	   		depends on ENABLE_DEVICE_CLOCK
+	   		default y if ENABLE_DEVICE_CLOCK
+	   		help
+	   			The job module is intended to schedule task.
+   	endmenu
+   	
+    config ENABLE_COAP_RESOURCES
+    bool "Enable resources"
+    default y
+    help
+    	Enable resources. Resources are request that can be made to device to get
+    	information, or process some data or run some command.
+   
+    menu "Add Resources"
+    	depends on ENABLE_COAP_RESOURCES
+    	
+    	config COAP_RESOURCE_LED
+	    	bool "Manage LED (/led)"
+	    	default n
+	    	help
+	    		Turn on/off led from board (PUT), or get state of led (GET).
+    		
+    	config COAP_RESOURCE_LED_GPIO
+	    	int "LED GPIO"
+	    	depends on COAP_RESOURCE_LED
+	    	default 2
+	    	range 0 32
+	    	help
+	    		Sets the GPIO that will be manage with LED resource. Its of the user
+	    		responsability to configure to GPIO to mode 'GPIO_MODE_INPUT_OUTPUT'
+	    		
+	    config COAP_RESOURCE_DISCOVERY
+	    	bool "CoAP Discovery (/.well-known/core)"
+	    	default n
+	    	help
+	    		Resource discovery as defined at RFC6690.
+	    		
+	    config COAP_RESOURCE_UPTIME
+	    	bool "Device uptime (/uptime)"
+	    	default y
+	    	help
+	    		Get device uptime, in microseconds.
+	    		
+	    config COAP_RESOURCE_REBOOT
+	    	bool "Reboot device (/reboot)"
+	    	default y
+	    	help
+	    		Post command to restart device
+	    		
+	    config COAP_RESOURCE_RESET_REASON
+	    	bool "Device reset reason (/reset_reason)"
+	    	default y
+	    	help
+	    		Get device reset reason, defined by 'esp_reset_reason_t'.
+	    		
+	    config COAP_RESOURCE_NET_RSSI
+	    	bool "Device RSSI (/net/rssi)"
+	    	default n
+	    	help
+	    		Get device radio signal strength.
+	    
+	    config COAP_RESOURCE_NET_PARENT
+	    	bool "Device MAC parent (/net/parent)"
+	    	default n
+	    	help
+	    		Get device parent at mesh network
+	    		
+	    config COAP_RESOURCE_NET_WAIVE_ROOT
+	    	bool "Waive root command (/net/waive)"
+	    	default y
+	    	help
+	    		Waive root command is a command that the device will give up
+	    		from being the root node of the mesh network.
+	    		
+	    config COAP_RESOURCE_NET_CONFIG
+	    	bool "Packet config (/net/config)"
+	    	default y
+	    	help
+	    		Get static information of network like net ID, channels, and
+	    		MAC AP.
+	    		
+	    config COAP_RESOURCE_NET_ROUTE
+	    	bool "Packet route (/net/route)"
+	    	default y
+	    	help
+	    		Get the route information of the device, i.e, the parent and
+	    		children table of the device at the mesh network.
+	    		
+	    config COAP_RESOURCE_NET_FULL_CONFIG
+	    	bool "Packet full_config (/net/full_config)"
+	    	default y
+	    	help
+	    		Get the all the information from the network, i.e. the route,
+	    		static configuration and RSSI.
+	    		
+	   config COAP_RESOURCE_VERSION
+	   		bool "Firwmare/Hardware version (/version)"
+	   		default y
+	   		help
+	   			Get firmware and hardware version. The firmware is readed from
+	   			the memory (base of the flashed firmware), the hardware is manually
+	   			set with menuconfig.
+    endmenu
+endmenu

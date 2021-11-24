@@ -1,5 +1,5 @@
 #include "xgzp6897d.hpp"
-#include <stdio.h>
+//#include <stdio.h>
 
 enum class reg : uint8_t{
 	data_msb = 0x06,
@@ -109,8 +109,6 @@ int XGZP6897D::read_adc_temperature(uint16_t& temp) noexcept
 	i2c_->read(address, static_cast<uint8_t>(reg::temp_msb), &a, true);
 	i2c_->read(address, static_cast<uint8_t>(reg::temp_lsb), &b, true);
 
-	printf("Reg: %u %u\n", a, b);
-
 	temp = (a << 8) | b;
 
 	return 1;
@@ -125,8 +123,6 @@ int XGZP6897D::read_adc(uint16_t& temp, uint32_t& pressure) noexcept
 	{
 		return ret;
 	}
-
-	printf("Reg: %u %u %u %u %u\n", data[0], data[1], data[2], data[3], data[4]);
 
 	pressure = (data[0] << 16) | (data[1] << 8) | data[2];
 	temp = (data[3] << 8) | data[4];

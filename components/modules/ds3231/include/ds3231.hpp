@@ -89,6 +89,8 @@ class DS3231{
 
 		DS3231(I2C_Master *i2c, uint8_t mode = FORMAT_24H);
 
+		bool probe() noexcept;
+
 		void begin(void);
 
 		void setDateTime(DateTime *dateTime);

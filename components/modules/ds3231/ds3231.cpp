@@ -53,6 +53,11 @@ DS3231::DS3231(I2C_Master *i2c, uint8_t time_mode /* = FORMAT_24H */)
 	: _i2c(i2c), _time_mode(time_mode)
 {}
 
+bool DS3231::probe() noexcept
+{
+	return _i2c->probe(DS3231_ADDR);
+}
+
 void DS3231::begin(){
 	_set_bit_reg(REG_HOUR, BIT_1224, _time_mode);
 	enableAlarm1Int(false);
