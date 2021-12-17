@@ -3,10 +3,12 @@
 #include "agro/helper.hpp"
 #include "esp_ota_ops.h"
 #include "types.hpp"
+#include "agro/types.hpp"
 
 #include "agro/version.hpp"
 
 extern std::uint8_t temp_sensor_count;
+extern Agro::RTC_Time device_clock;
 
 std::size_t make_board_config(void* buffer, std::size_t buffer_len) noexcept
 {
@@ -20,7 +22,7 @@ std::size_t make_board_config(void* buffer, std::size_t buffer_len) noexcept
 	}
 	board_config bc;
 
-	bc.has_rtc = 0;//device_clock.has_rtc() ? 1 : 0;
+	bc.has_rtc = device_clock.has_rtc() ? 1 : 0;
 	bc.has_temp_sensor = temp_sensor_count > 0 ? 1 : 0;
 
 	std::uint8_t* bu8 = static_cast<std::uint8_t*>(buffer);

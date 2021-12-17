@@ -82,7 +82,7 @@ idf_component_register(SRCS ${AGRO_SRC}
                        REQUIRES ${REQUIRE_LIST})
 						
 target_compile_options(${COMPONENT_LIB} 
-						PRIVATE -std=gnu++17 
+						PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=gnu++17> 
 						-DCOAP_TE_ESP_IDF_PLATAFORM=1
 						-DCOAP_TE_PORT_ESP_MESH=1
 						-DCOAP_TE_PORT_POSIX=1

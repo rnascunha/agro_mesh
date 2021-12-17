@@ -100,6 +100,9 @@ void init_coap_resources() noexcept
 {
 	ESP_LOGD(COAP_TAG, "Initializing CoAP Engine");
 
+	/**
+	 * Resources
+	 */
 #if CONFIG_ENABLE_COAP_RESOURCES
 
 #if CONFIG_COAP_RESOURCE_NET_RSSI
@@ -156,6 +159,10 @@ void init_coap_resources() noexcept
 #endif /* CONFIG_COAP_RESOURCE_DISCOVERY */
 
 #endif /* CONFIG_ENABLE_COAP_RESOURCES */
+
+	/**
+	 * Modules resources
+	 */
 
 #if CONFIG_ENABLE_OTA_SUPPORT
 	coap_engine.root_node().add_child(res_ota);
