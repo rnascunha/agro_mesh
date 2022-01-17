@@ -1,0 +1,18 @@
+name: Build
+on: [push, workflow-dispatch]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+         idf-version: [release-v4.4, release-v4.3]
+    steps:
+      - name: Checking out repostitory
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Build esp32
+        uses: espressif/esp-idf-ci-action@${{ matrix.idf-version }}
