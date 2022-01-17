@@ -5,14 +5,14 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-         idf-version: [release-v4.4, release-v4.3]
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#         idf-version: [release-v4.4, release-v4.3]
     steps:
       - name: Checking out repostitory
         uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Build esp32
-        uses: espressif/esp-idf-ci-action@${{ matrix.idf-version }}
+      - name: Build ESP32 latest
+        uses: espressif/esp-idf-ci-action@latest
