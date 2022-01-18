@@ -14,7 +14,8 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
+      - name: Prepare
+        run: |
+           cp sdkconfig-action sdkconfig
       - name: Build ESP32 latest
         uses: espressif/esp-idf-ci-action@latest
-        with:
-           path: '.'

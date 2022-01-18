@@ -35,6 +35,6 @@
 build/
 .project
 /.cproject
-#sdkconfig
+sdkconfig
 sdkconfig.old
 /Debug/
