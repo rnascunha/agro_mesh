@@ -1,6 +1,7 @@
 #include "../send.hpp"
 #include "../make.hpp"
 #include <cstdint>
+#include "../../../modules/app/app.hpp"
 
 #if CONFIG_ENABLE_DEVICE_CLOCK
 #include "../../../modules/clock/rtc_time.hpp"
@@ -153,6 +154,78 @@ std::size_t send_info(Engine& eng, CoAP::Message::type mtype, const char* messag
 		.add_option(uri_path)
 		.add_option(content_format)
 		.payload(message);
+
+	return eng.send(req, ec);
+}
+
+template<typename Engine>
+std::size_t send_report(Engine& eng,
+						CoAP::Message::type mtype,
+						report_type report,
+						const char* message,
+						CoAP::Error& ec) noexcept
+{
+	if(mtype != CoAP::Message::type::confirmable
+		&& mtype != CoAP::Message::type::nonconfirmable)
+	{
+		ec = CoAP::errc::type_invalid;
+		return 0;
+	}
+
+	CoAP::Message::Option::node uri_path{CoAP::Message::Option::code::uri_path, "report"};
+
+	char buffer[Engine::packet_size];
+	buffer[0] = static_cast<char>(report);
+
+	std::size_t size = std::strlen(message);
+	std::memcpy(buffer + 1, message, size);
+
+	//Making dummy endpoint
+	mesh_addr_t addr{};
+	addr.mip.port = htons(5683);
+	typename Engine::endpoint ep{addr, CoAP::Port::ESP_Mesh::endpoint_type::to_external};
+
+	typename Engine::request req{ep};
+	req.header(mtype, CoAP::Message::code::put)
+		.add_option(uri_path)
+		.payload(buffer, size + 1);
+
+	return eng.send(req, ec);
+}
+
+
+template<typename Engine>
+std::size_t send_app_list(Engine& eng,
+						CoAP::Message::type mtype,
+						CoAP::Error& ec) noexcept
+{
+	if(mtype != CoAP::Message::type::confirmable
+		&& mtype != CoAP::Message::type::nonconfirmable)
+	{
+		ec = CoAP::errc::type_invalid;
+		return 0;
+	}
+
+	CoAP::Message::Option::node uri_path{CoAP::Message::Option::code::uri_path, "app"};
+
+	//Making dummy endpoint
+	mesh_addr_t addr{};
+	addr.mip.port = htons(5683);
+	typename Engine::endpoint ep{addr, CoAP::Port::ESP_Mesh::endpoint_type::to_external};
+
+	unsigned size;
+	std::uint8_t buffer[Engine::packet_size];
+	app_status status = get_app_list(buffer, Engine::packet_size, size);
+	if(status != app_status::success)
+	{
+		ec = CoAP::errc::invalid_data;
+		return 0;
+	}
+
+	typename Engine::request req{ep};
+	req.header(mtype, CoAP::Message::code::post)
+		.add_option(uri_path)
+		.payload(buffer, size);
 
 	return eng.send(req, ec);
 }

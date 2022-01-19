@@ -19,3 +19,4 @@ config* make_config(config& cfg) noexcept
 
 	return &cfg;
 }
+

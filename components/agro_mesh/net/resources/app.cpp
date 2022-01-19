@@ -68,7 +68,7 @@ static void post_app_handler(engine::message const& request,
 	{
 		response
 			.code(CoAP::Message::code::precondition_failed)
-			.payload("app not defiend")
+			.payload("App not defiend")
 			.serialize();
 		return;
 	}
@@ -80,7 +80,7 @@ static void post_app_handler(engine::message const& request,
 	{
 		response
 			.code(CoAP::Message::code::precondition_failed)
-			.payload("file name too long")
+			.payload("File name too long")
 			.serialize();
 		return;
 	}
@@ -93,7 +93,7 @@ static void post_app_handler(engine::message const& request,
 	{
 		response
 			.code(CoAP::Message::code::internal_server_error)
-			.payload("app other loading")
+			.payload("Other app been installed")
 			.serialize();
 		return;
 	}
@@ -146,7 +146,6 @@ static void put_app_handler(engine::message const& request,
 		return;
 	}
 
-	ESP_LOGI(RESOURCE_TAG, "Returned %d", ret);
 	response
 		.code(CoAP::Message::code::success)
 		.payload(&ret, sizeof(ret))
@@ -162,7 +161,7 @@ static void delete_app_handler(engine::message const& request,
 	{
 		response
 			.code(CoAP::Message::code::precondition_failed)
-			.payload("app not defined")
+			.payload("App not defined")
 			.serialize();
 		return;
 	}
@@ -174,7 +173,7 @@ static void delete_app_handler(engine::message const& request,
 	{
 		response
 			.code(CoAP::Message::code::precondition_failed)
-			.payload("file name too long")
+			.payload("File name too long")
 			.serialize();
 		return;
 	}

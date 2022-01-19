@@ -62,6 +62,8 @@ app_status get_app_list(unsigned char* buffer,
 {
 	if(!storage_is_mounted()) return app_status::not_mounted;
 
+	readed = 0;
+
 	FILE *f = fopen(app_list, "rb");
 	if(!f)
 	{
@@ -105,7 +107,7 @@ app_status get_app(app& app_, const char* name) noexcept
 	return finded ? app_status::success : app_status::not_found;
 }
 
-app_status add_app(const char* name, unsigned size) noexcept
+app_status add_app(const char* name, unsigned size, std::uint8_t* hash) noexcept
 {
 	if(!storage_is_mounted()) return app_status::not_mounted;
 
@@ -120,8 +122,9 @@ app_status add_app(const char* name, unsigned size) noexcept
 		return app_status::file_list_error;
 	}
 
-	strncpy(app_.name, name, app_max_name_size);
 	app_.size = size;
+	std::memcpy(app_.hash, hash, APP_HASH_SIZE);
+	strncpy(app_.name, name, app_max_name_size);
 
 	fwrite(reinterpret_cast<char*>(&app_), 1, sizeof(app), f);
 	fclose(f);

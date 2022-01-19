@@ -230,7 +230,11 @@ static void app_task(void*)
 	if(status == app_status::success)
 	{
 		CoAP::Error ec;
-		send_info(coap_engine, CoAP::Message::type::confirmable, "app already installed", ec);
+		send_report(coap_engine,
+				CoAP::Message::type::confirmable,
+				report_type::warning,
+				"App already installed",
+				ec);
 		app_task_handler = NULL;
 		vTaskDelete(NULL);
 		return;
@@ -280,7 +284,10 @@ static void app_task(void*)
 		/**
 		 * Hash check failed
 		 */
-		send_info(coap_engine, CoAP::Message::type::confirmable, "app hash not met", ec);
+		send_report(coap_engine,
+				CoAP::Message::type::confirmable,
+				report_type::error,
+				"App hash not met", ec);
 		unlink(app_transfer_data.file_name);
 	}
 	else
@@ -288,8 +295,12 @@ static void app_task(void*)
 		/**
 		 * Adding app to list
 		 */
-		add_app(app_transfer_data.data.name, app_transfer_data.data.size);
-		send_info(coap_engine, CoAP::Message::type::confirmable, "app installed", ec);
+		add_app(app_transfer_data.data.name, app_transfer_data.data.size, hash);
+		send_report(coap_engine,
+				CoAP::Message::type::confirmable,
+				report_type::success,
+				"App installed", ec);
+		send_app_list(coap_engine, CoAP::Message::type::confirmable, ec);
 	}
 
 	app_task_handler = NULL;
@@ -302,7 +313,9 @@ bool init_app_task(const char* name, const std::uint8_t* hash) noexcept
 	 * Check if task is already running
 	 */
 	if(app_task_handler)
+	{
 		return false;
+	}
 
 	std::strcpy(app_transfer_data.data.name, name);
 

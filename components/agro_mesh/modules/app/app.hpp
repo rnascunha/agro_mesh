@@ -9,9 +9,13 @@ static constexpr const unsigned app_max_name_size = CONFIG_FATFS_MAX_LFN;
 static constexpr const unsigned app_max_name_size = 12;
 #endif
 
-struct app{
-	char		name[app_max_name_size + 1];
-	unsigned 	size = 0;
+static constexpr const unsigned APP_HASH_SIZE = 32;
+
+struct app
+{
+	unsigned 		size = 0;						//app size
+	std::uint8_t	hash[APP_HASH_SIZE];			//app hash
+	char			name[app_max_name_size + 1];	//app name (Null terminated)
 };
 
 enum class app_status{
@@ -29,7 +33,7 @@ const char* app_error_string(app_status status) noexcept;
 
 app_status get_app(app& app_, const char* name) noexcept;
 app_status get_app_list(unsigned char*, unsigned, unsigned& readed, unsigned read_from = 0) noexcept;
-app_status add_app(const char* name, unsigned size) noexcept;
+app_status add_app(const char* name, unsigned size, std::uint8_t* hash) noexcept;
 app_status delete_app(const char* name) noexcept;
 app_status execute_app(const char* name, int args, int& ret) noexcept;
 
