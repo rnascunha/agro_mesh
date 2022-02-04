@@ -130,12 +130,19 @@ static void put_app_handler(engine::message const& request,
 	}
 
 	std::int32_t arg = *static_cast<const int*>(request.payload);
-	int ret;
+	int ret = 0;
 	char name[app_max_name_size + 1];
 	app_status status = execute_app(make_name(name,
 									static_cast<const char*>(request.payload) + sizeof(std::int32_t),
 									request.payload_len - sizeof(std::int32_t)),
 									arg, ret);
+/**
+ * Example using app with new task
+ */
+//	app_status status = execute_app_as_task(make_name(name,
+//						static_cast<const char*>(request.payload) + sizeof(std::int32_t),
+//						request.payload_len - sizeof(std::int32_t)), arg,
+//						3072, 5, nullptr);
 
 	if(status != app_status::success)
 	{

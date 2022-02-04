@@ -165,10 +165,14 @@ static void mesh_event_handler(void *arg, esp_event_base_t event_base,
     }
 }
 
-bool ds_state() noexcept
+namespace Agro{
+
+bool is_connected() noexcept
 {
 	return ds_state_;
 }
+
+}//Agro
 
 void init_mesh() noexcept
 {

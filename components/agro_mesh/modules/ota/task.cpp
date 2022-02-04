@@ -13,9 +13,7 @@
 #include "driver/gpio.h"
 #include "errno.h"
 
-#include "coap-te-debug.hpp"
-#include "../net/coap_engine.hpp"
-#include "../net/messages/send.hpp"
+#include "../../net/helper.hpp"
 
 #define BUFFSIZE 1024
 #define HASH_LEN 32 /* SHA-256 digest length */
@@ -26,7 +24,6 @@ extern const std::size_t image_name_max_size = 31;
 #define PAYLOAD_SIZE		CONFIG_BUFFER_TRANSACTION_PAYLOAD
 
 TaskHandle_t ota_task_handler = NULL;
-extern engine coap_engine;
 
 static int64_t init_time = 0;
 static int64_t end_time = 0;
@@ -88,15 +85,15 @@ static const char* ota_error(ota_status status) noexcept
 	return "undefined";
 }
 
-static void send_ota_info(engine& eng, ota_status status) noexcept
+static void send_ota_info(ota_status status) noexcept
 {
 	CoAP::Error ec;
-	send_info(eng, CoAP::Message::type::confirmable, ota_error(status), ec);
+	Agro::send_info(CoAP::Message::type::confirmable, ota_error(status), ec);
 }
 
 static void fail_ota_task(ota_status status, TaskHandle_t handle = NULL) noexcept
 {
-	send_ota_info(coap_engine, status);
+	send_ota_info(status);
 	vTaskDelete(handle);
 	ota_task_handler = NULL;
 }
@@ -304,7 +301,7 @@ static void request_ota_cb(void const* trans,
 		}
 		else
 		{
-			send_ota_info(coap_engine,  ota_status::reveice_timeout);
+			send_ota_info(ota_status::reveice_timeout);
 		}
 	}
 }
@@ -357,7 +354,7 @@ void ota_task(void*)
 		.callback(request_ota_cb);
 
 	CoAP::Error ec;
-	coap_engine.send(req, ec);
+	Agro::coap_send(req, ec);
 	if(ec)
 	{
 		ESP_LOGE(TAG, "Error ota send request [%d/%s]", ec.value(), ec.message());

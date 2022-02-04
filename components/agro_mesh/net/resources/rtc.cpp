@@ -3,8 +3,6 @@
 #include "../../helper/convert.hpp"
 #include "../../modules/clock/rtc_time.hpp"
 
-#include "coap-te-debug.hpp"
-
 extern Agro::RTC_Time device_clock;
 
 extern const char* RESOURCE_TAG;
@@ -13,8 +11,6 @@ static void get_rtc_time_handler(engine::message const& request,
 								engine::response& response, void*) noexcept
 {
 	ESP_LOGI(RESOURCE_TAG, "Called get rtc time handler");
-
-	CoAP::Debug::print_message(request);
 
 	CoAP::Message::Option::option op;
 	CoAP::Message::content_format accept_format = CoAP::Message::accept::text_plain;
@@ -64,8 +60,6 @@ static void put_rtc_time_handler(engine::message const& request,
 {
 	ESP_LOGI(RESOURCE_TAG, "Called put rtc time handler");
 
-	CoAP::Debug::print_message(request);
-
 	if(!request.payload || request.payload_len == 0)
 	{
 		response
@@ -103,8 +97,6 @@ static void get_fuse_handler(engine::message const& request,
 								engine::response& response, void*) noexcept
 {
 	ESP_LOGI(RESOURCE_TAG, "Called get fuse time handler");
-
-	CoAP::Debug::print_message(request);
 
 	CoAP::Message::Option::option op;
 	CoAP::Message::content_format accept_format = CoAP::Message::accept::text_plain;
@@ -153,8 +145,6 @@ static void put_fuse_handler(engine::message const& request,
 								engine::response& response, void*) noexcept
 {
 	ESP_LOGI(RESOURCE_TAG, "Called put fuse time handler");
-
-	CoAP::Debug::print_message(request);
 
 	if(!request.payload || request.payload_len == 0)
 	{

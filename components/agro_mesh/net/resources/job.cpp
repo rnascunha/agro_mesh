@@ -1,14 +1,12 @@
 #include "esp_log.h"
 #include "../coap_engine.hpp"
 
-#include "datetime.h"
-#include "../../modules/job/job.hpp"
 #include "../../storage.hpp"
+#include "../../modules/job/job_define.hpp"
 
 extern const char* RESOURCE_TAG;
 
-extern const char* job_path;
-extern volatile bool job_force_check;
+extern Agro::Jobs::runner_type runner;
 
 static void get_job_handler(engine::message const& request,
 								engine::response& response,
@@ -25,7 +23,7 @@ static void get_job_handler(engine::message const& request,
 		return;
 	}
 
-	FILE *f = fopen(job_path, "rb");
+	FILE *f = fopen(runner.path(), "rb");
 	if (f == NULL)
 	{
 		/**
@@ -51,7 +49,7 @@ static void put_job_handler(engine::message const& request,
 								engine::response& response,
 								void*) noexcept
 {
-	ESP_LOGD(RESOURCE_TAG, "Called put job handler");
+	ESP_LOGI(RESOURCE_TAG, "Called put job handler");
 
 	if(!storage_is_mounted())
 	{
@@ -62,7 +60,7 @@ static void put_job_handler(engine::message const& request,
 		return;
 	}
 
-	if(request.payload_len % Agro::Jobs::job::packet_size)
+	if(request.payload_len % Agro::Jobs::job_type::packet_size)
 	{
 		response
 			.code(CoAP::Message::code::bad_request)
@@ -71,7 +69,7 @@ static void put_job_handler(engine::message const& request,
 		return;
 	}
 
-	FILE *f = fopen(job_path, "wb");
+	FILE *f = fopen(runner.path(), "wb");
 	if (f == NULL)
 	{
 		response
@@ -83,7 +81,7 @@ static void put_job_handler(engine::message const& request,
 	fwrite(request.payload, 1, request.payload_len, f);
 	fclose(f);
 
-	job_force_check = true;
+	runner.clear();
 
 	response
 		.code(CoAP::Message::code::changed)
@@ -105,7 +103,7 @@ static void delete_job_handler(engine::message const& request,
 		return;
 	}
 
-	unlink(job_path);
+	unlink(runner.path());
 
 	response
 		.code(CoAP::Message::code::deleted)

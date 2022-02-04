@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include "sensor_type.hpp"
-//#include "coap-te.hpp"
 #include "../net/coap_engine.hpp"
 
 

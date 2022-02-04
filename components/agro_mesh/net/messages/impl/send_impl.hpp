@@ -229,3 +229,28 @@ std::size_t send_app_list(Engine& eng,
 
 	return eng.send(req, ec);
 }
+
+template<typename Engine>
+std::size_t send_job_info(Engine& engine, CoAP::Message::type mtype, int index, CoAP::Error& ec) noexcept
+{
+	if(mtype != CoAP::Message::type::confirmable
+		&& mtype != CoAP::Message::type::nonconfirmable)
+	{
+		ec = CoAP::errc::type_invalid;
+		return 0;
+	}
+
+	CoAP::Message::Option::node uri_path{CoAP::Message::Option::code::uri_path, "job"};
+
+	//Making dummy endpoint
+	mesh_addr_t addr{};
+	addr.mip.port = htons(5683);
+	typename Engine::endpoint ep{addr, CoAP::Port::ESP_Mesh::endpoint_type::to_external};
+
+	typename Engine::request req{ep};
+	req.header(mtype, CoAP::Message::code::post)
+		.add_option(uri_path)
+		.payload(&index, sizeof(index));
+
+	return engine.send(req, ec);
+}

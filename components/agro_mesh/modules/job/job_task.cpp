@@ -4,55 +4,58 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include ".././net/coap_engine.hpp"
-#include "../../net/messages/send.hpp"
-
+#include "../../net/helper.hpp"
 #include "../../storage.hpp"
+
+#include "../clock/helper.hpp"
+#include "job_define.hpp"
 
 #define TAG		"JOB"
 
 const char* job_path = STORAGE_BASE_PATH "/job";
 
-extern engine coap_engine;
+Agro::Jobs::runner_type runner{job_path};
 
-extern Agro::RTC_Time device_clock;
-volatile bool job_force_check = false;
-
-static void print_job(Agro::Jobs::job const& jb) noexcept
+template<typename Executor>
+static void print_job(Agro::Jobs::job<Executor> const& jb) noexcept
 {
-	DateTime dt;
-	dt.setUnixTime(device_clock.get_local_time());
+	DateTime dt = Agro::get_local_datetime();
 
-	printf("%02u/%02u/%04u %02u:%02u:%02u %d|%02u:%02u-%02u:%02u dow=%d/pri:%u/act:%u|%s\n",
-//			device_clock.get_time(), device_clock.get_local_time(),
-			dt.getDay(), dt.getMonth(), dt.getYear(),
+	printf("%02u:%02u:%02u %d|%02u:%02u-%02u:%02u dow=%d/pri:%u|%s\n",
 			dt.getHour(), dt.getMinute(), dt.getSecond(),
 			static_cast<int>(dt.dayOfWeek()),
 			jb.sch.time_before.hour, jb.sch.time_before.minute,
 			jb.sch.time_after.hour, jb.sch.time_after.minute,
-			static_cast<int>(jb.sch.dw), jb.priority, jb.active,
-			jb.sch.is_active(device_clock.get_local_time()) ? "active" : "not");
+			static_cast<int>(jb.sch.dw), jb.priority,
+			jb.sch.is_active(Agro::get_local_time()) ? "active" : "not");
 }
 
 static void jobs(void*) noexcept
 {
 	ESP_LOGI(TAG, "Initiated job task...");
-	Agro::Jobs::run scheduler{job_path};
 
-	print_job(scheduler.running_job());
 	do{
-		int index;
-		if(scheduler.check(index, job_force_check))
+		int index, index_b = runner.current();
+		ESP_LOGD(TAG, "Checking jobs...");
+		if(runner.check(index) == Agro::Jobs::run_error::success)
 		{
-			ESP_LOGI(TAG, "New job running");
-			print_job(scheduler.running_job());
-			CoAP::Error ec;
-			char buf[30];
-			snprintf(buf, 30, "new job running|%d", index);
-			send_info(coap_engine, CoAP::Message::type::confirmable, buf, ec);
+			if(index_b != runner.current())
+			{
+				if(runner.current() == Agro::Jobs::runner_type::no_exec)
+				{
+					ESP_LOGI(TAG, "No job running");
+				}
+				else
+				{
+					ESP_LOGI(TAG, "New job running | %d\n", index);
+					print_job(runner.running());
+				}
+
+				CoAP::Error ec;
+				Agro::send_job_info(CoAP::Message::type::nonconfirmable, index, ec);
+			}
 		}
-		job_force_check = false;
-		vTaskDelay((60 * 1000) / portTICK_RATE_MS);
+		vTaskDelay(Agro::Jobs::runner_type::time_check / portTICK_RATE_MS);
 	}while(true);
 	vTaskDelete(NULL);
 }
@@ -61,6 +64,6 @@ void init_job_task() noexcept
 {
 	if(storage_is_mounted())
 	{
-		xTaskCreate(&jobs, "jobs", 2048, NULL, 5, NULL);
+		xTaskCreate(&jobs, "jobs", 3072, NULL, 5, NULL);
 	}
 }

@@ -8,7 +8,8 @@ set(AGRO_SRC	agro_mesh.cpp
 				net/tasks.cpp
 				net/messages/make.cpp
 				net/helper.cpp
-				helper/convert.cpp)
+				helper/convert.cpp
+				modules/executor/executor.cpp)
 
 set(REQUIRE_LIST coap-te
 					wear_levelling
@@ -31,11 +32,13 @@ if(CONFIG_ENABLE_APP_SUPPORT)
 	message(STATUS "APP SUPPORTED!")
 	list(APPEND AGRO_SRC modules/app/app.cpp 
 							modules/app/task.cpp 
+							modules/app/executor.cpp 
 							${RESOURCE_PATH}/app.cpp)
 endif()
 
 if(CONFIG_ENABLE_DEVICE_CLOCK)
 	list(APPEND AGRO_SRC modules/clock/rtc_time.cpp
+							modules/clock/helper.cpp
 							${RESOURCE_PATH}/rtc.cpp)
 endif()
 
@@ -80,12 +83,4 @@ endif(CONFIG_ENABLE_COAP_RESOURCES)
 idf_component_register(SRCS ${AGRO_SRC}
                        INCLUDE_DIRS include
                        REQUIRES ${REQUIRE_LIST})
-						
-target_compile_options(${COMPONENT_LIB} 
-						PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=gnu++17> 
-						-DCOAP_TE_ESP_IDF_PLATAFORM=1
-						-DCOAP_TE_PORT_ESP_MESH=1
-						-DCOAP_TE_PORT_POSIX=1
-						-DCOAP_TE_PORT_C_STANDARD=1
-						-DCOAP_TE_LOG_LEVEL=${CONFIG_COAP_TE_LOG_LEVEL}
-						-DCOAP_TE_USE_SELECT=1)
+

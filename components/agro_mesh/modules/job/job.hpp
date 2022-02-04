@@ -7,7 +7,7 @@
 namespace Agro{
 namespace Jobs{
 
-enum class dow{
+enum class dow : std::uint8_t{
 	monday = 1 << 0,
 	tuesday = 1 << 1,
 	wednesday = 1 << 2,
@@ -17,12 +17,16 @@ enum class dow{
 	sunday = 1 << 6
 };
 
-dow operator|(dow lhs, dow rhs) noexcept;
+inline constexpr dow operator|(dow lhs, dow rhs) noexcept
+{
+	return static_cast<dow>(static_cast<int>(rhs) | static_cast<int>(lhs));
+}
+
 bool is_dow(value_time) noexcept;
 
-static dow all_dow_days = dow::monday | dow::tuesday | dow::wednesday
-				| dow::thursday | dow::friday | dow::saturday
-				| dow::sunday;
+static constexpr const dow all_dow_days = dow::monday | dow::tuesday | dow::wednesday
+										| dow::thursday | dow::friday | dow::saturday
+										| dow::sunday;
 
 struct time{
 	time();
@@ -44,63 +48,79 @@ struct time{
 
 bool between(value_time, time const& before, time const& after) noexcept;
 
-struct scheduler{
-	scheduler() = default;
-	scheduler(scheduler const&) =  default;
-	scheduler(time const& before, time const& after, dow dw_ = all_dow_days);
+struct schedule{
+	schedule() = default;
+	schedule(schedule const&) =  default;
+	schedule(time const& before, time const& after, dow dw_ = all_dow_days);
 
 	time			time_before;
 	time			time_after;
 	dow				dw = all_dow_days;		///< Day of the week
 
-	bool operator==(scheduler const&) const noexcept;
-	scheduler& operator=(scheduler const&) noexcept = default;
+	bool operator==(schedule const&) const noexcept;
+	schedule& operator=(schedule const&) noexcept = default;
 	bool is_active(value_time) const noexcept;
 	bool operator()() const noexcept;
 };
 
-void execute(std::uint8_t act) noexcept;
-
-struct job{
-	static constexpr const std::size_t packet_size = 7;
-
-	job() = default;
-	job(scheduler const& sch_, std::uint8_t prior, std::uint8_t act)
-		: sch(sch_), priority(prior), active(act){}
-
-	scheduler		sch;
-	std::uint8_t	priority = 0;
-	std::uint8_t	active = 0;
-
-	job& operator=(job const&) noexcept = default;
-	bool operator==(job const&) noexcept;
-	void execute() const noexcept;
+struct __attribute__((packed)) job_packet{
+	std::uint8_t be_time_hour;
+	std::uint8_t be_time_minute;
+	std::uint8_t af_time_hour;
+	std::uint8_t af_time_minute;
+	dow			 day_of_week;
+	std::uint8_t priority;
 };
 
+template<typename Executor>
+struct job{
+	static constexpr const std::size_t packet_size = sizeof(job_packet) + Executor::packet_size;
+
+	job() = default;
+
+	schedule		sch;
+	std::uint8_t	priority = 0;
+	Executor		exec;
+
+	bool read(FILE*) noexcept;
+
+	void execute() noexcept;
+	void start() noexcept;
+	void stop() noexcept;
+
+	job& operator=(job&&) noexcept;
+};
+
+enum class run_error{
+	success = 0,
+	file_open,
+};
+
+template<typename Executor,
+		typename Config>
 class run{
 	public:
+		static constexpr const int no_exec = -1;
+		static constexpr const unsigned time_check = Config::time_check_interval;
+
 		run(const char*);
 
-		bool check(bool force = false) noexcept;
-
-		/**
-		 *
-		 * @param index Index of new job running (if return is true)
-		 * @return Check if new job is running
-		 * @retval true new job is running
-		 * @retval false old job still running
-		 */
-		bool check(int& index, bool force = false) noexcept;
-		job const& running_job() const noexcept{ return job_; }
-	private:
+		run_error check(int& new_index) noexcept;
 		void clear() noexcept;
-		bool is_clear() const noexcept;
 
-		const char* path_;
-		job			job_;
+		const char* path() const noexcept;
+		job<Executor> const& running() const noexcept;
+		bool is_running() const noexcept;
+		int current() const noexcept;
+	private:
+		const char* 	path_;
+		job<Executor>	job_;
+		int				exec_idx_ = no_exec;
 };
 
 }//Jobs
 }//Agro
+
+#include "impl/job_impl.hpp"
 
 #endif /* AGRO_MESH_SCHEDULER_HPP__ */

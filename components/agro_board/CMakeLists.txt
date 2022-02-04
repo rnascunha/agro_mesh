@@ -4,6 +4,7 @@ set(RESOURCE_LIST		${RESOURCE_PATH}/packets.cpp
 
 idf_component_register(SRCS board.cpp
 							init_io.cpp
+							executor.cpp
 							net/task.cpp
 							net/init_resources.cpp
 							net/make.cpp

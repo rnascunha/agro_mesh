@@ -3,15 +3,13 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "mbedtls/md.h"
-#include "../../net/coap_engine.hpp"
+
+#include "../../net/helper.hpp"
 #include "../../net/messages/send.hpp"
 
 #include <string.h>
 
-#include "coap-te-debug.hpp"
-
 TaskHandle_t app_task_handler = NULL;
-extern engine coap_engine;
 extern const char *base_path;
 
 #define TAG		"app"
@@ -33,34 +31,15 @@ static struct {
 	}
 } app_transfer_data;
 
-static void print_hash(const std::uint8_t* hash) noexcept
-{
-	for(int i = 0; i < 32; i++)
-		printf("%02X ", hash[i]);
-}
-
-static void print_app_struct()
-{
-	printf("App struct:\n\tname[%s]\n\tsize[%u]\n\tfile_name[%s]\n\thash[",
-			app_transfer_data.data.name,
-			app_transfer_data.data.size,
-			app_transfer_data.file_name);
-	print_hash(app_transfer_data.hash);
-	printf("]\n\ttotal_size[%u]\n\tnext_block[%u]\n",
-			app_transfer_data.total_size,
-			app_transfer_data.next_block);
-
-}
-
-static void send_app_info(engine& eng, app_status status) noexcept
+static void send_app_info(app_status status) noexcept
 {
 	CoAP::Error ec;
-	send_info(eng, CoAP::Message::type::confirmable, app_error_string(status), ec);
+	Agro::send_info(CoAP::Message::type::confirmable, app_error_string(status), ec);
 }
 
 static void fail_app_task(app_status status, TaskHandle_t handle = NULL) noexcept
 {
-	send_app_info(coap_engine, status);
+	send_app_info(status);
 	unlink(app_transfer_data.file_name);
 	vTaskDelete(handle);
 	app_task_handler = NULL;
@@ -110,7 +89,7 @@ static void request_app_cb(void const* trans,
 		using namespace CoAP::Message;
 		if(CoAP::Message::is_error(response->mcode))
 		{
-			CoAP::Debug::print_message_string(*response);
+//			CoAP::Debug::print_message_string(*response);
 			fail_app_task(app_status::server_response, app_task_handler);
 			return;
 		}
@@ -217,7 +196,7 @@ static void request_app_cb(void const* trans,
 		}
 		else
 		{
-			send_app_info(coap_engine,  app_status::receive_timeout);
+			send_app_info(app_status::receive_timeout);
 		}
 	}
 }
@@ -230,8 +209,7 @@ static void app_task(void*)
 	if(status == app_status::success)
 	{
 		CoAP::Error ec;
-		send_report(coap_engine,
-				CoAP::Message::type::confirmable,
+		Agro::send_report(CoAP::Message::type::confirmable,
 				report_type::warning,
 				"App already installed",
 				ec);
@@ -239,8 +217,6 @@ static void app_task(void*)
 		vTaskDelete(NULL);
 		return;
 	}
-
-	print_app_struct();
 
 	//Making dummy endpoint
 	mesh_addr_t addr{};
@@ -260,7 +236,7 @@ static void app_task(void*)
 		.callback(request_app_cb);
 
 	CoAP::Error ec;
-	coap_engine.send(req, ec);
+	Agro::coap_send(req, ec);
 	if(ec)
 	{
 		ESP_LOGE(TAG, "Error app send request [%d/%s]", ec.value(), ec.message());
@@ -284,8 +260,7 @@ static void app_task(void*)
 		/**
 		 * Hash check failed
 		 */
-		send_report(coap_engine,
-				CoAP::Message::type::confirmable,
+		Agro::send_report(CoAP::Message::type::confirmable,
 				report_type::error,
 				"App hash not met", ec);
 		unlink(app_transfer_data.file_name);
@@ -296,8 +271,7 @@ static void app_task(void*)
 		 * Adding app to list
 		 */
 		add_app(app_transfer_data.data.name, app_transfer_data.data.size, hash);
-		send_report(coap_engine,
-				CoAP::Message::type::confirmable,
+		Agro::send_report(CoAP::Message::type::confirmable,
 				report_type::success,
 				"App installed", ec);
 		send_app_list(coap_engine, CoAP::Message::type::confirmable, ec);
@@ -331,3 +305,25 @@ bool init_app_task(const char* name, const std::uint8_t* hash) noexcept
 
 	return true;
 }
+
+/**
+ * Old debug functions
+ */
+//static void print_hash(const std::uint8_t* hash) noexcept
+//{
+//	for(int i = 0; i < 32; i++)
+//		printf("%02X ", hash[i]);
+//}
+
+//static void print_app_struct()
+//{
+//	printf("App struct:\n\tname[%s]\n\tsize[%u]\n\tfile_name[%s]\n\thash[",
+//			app_transfer_data.data.name,
+//			app_transfer_data.data.size,
+//			app_transfer_data.file_name);
+//	print_hash(app_transfer_data.hash);
+//	printf("]\n\ttotal_size[%u]\n\tnext_block[%u]\n",
+//			app_transfer_data.total_size,
+//			app_transfer_data.next_block);
+//
+//}

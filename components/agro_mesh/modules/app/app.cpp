@@ -7,25 +7,16 @@
 #include <cstring>
 #include <malloc.h>
 #include <unistd.h>
-#include "loader.h"
 #include "driver/gpio.h"
+
+#include "loader.h"
+#include "environment.hpp"
 
 #define TAG "app"
 
 extern const char* app_list;
 extern const char* app_temp;
 extern const char *base_path;
-
-static const ELFLoaderSymbol_t exports[] = {
-    { "puts", (void*) puts },
-    { "printf", (void*) printf },
-	{ "gpio_set_level", (void*)gpio_set_level}
-};
-
-static const ELFLoaderEnv_t env = {
-		exports,
-		sizeof(exports) / sizeof(*exports)
-};
 
 static char* make_file_path(char* buf, const char* name) noexcept
 {
@@ -36,6 +27,16 @@ static char* make_file_path(char* buf, const char* name) noexcept
 
 	return buf;
 }
+
+struct app_exec{
+	int 			arg = 0;
+	unsigned char* 	elf_exec = nullptr;
+
+	~app_exec()
+	{
+		free(elf_exec);
+	}
+};
 
 const char* app_error_string(app_status status) noexcept
 {
@@ -182,39 +183,96 @@ app_status delete_app(const char* name) noexcept
 
 app_status execute_app(const char* name, int args, int& ret) noexcept
 {
-	if(!storage_is_mounted()) return app_status::not_mounted;
-
-	ESP_LOGI(TAG, "APP to exec %s", name);
-
-	app app_;
-	app_status status = get_app(app_, name);
+	unsigned char* app_buf;
+	app_status status = read_app_file(name, &app_buf);
 	if(status != app_status::success)
 	{
-		ESP_LOGE(TAG, "[exec_app] get_app not found = %s", name);
 		return status;
-	}
-
-	unsigned char* app_buf = (unsigned char*)malloc(sizeof(unsigned char) * app_.size);
-	if(!app_buf) return app_status::allocation_error;
-
-	char buffer[app_max_name_size + 10];
-	FILE* f = fopen(make_file_path(buffer, name), "rb");
-	if(!f)
-	{
-		ESP_LOGE(TAG, "[exec_app] Error opening file = %s", name);
-		return app_status::file_list_error;
-	}
-	unsigned readed = fread(app_buf, 1, app_.size, f);
-	fclose(f);
-	if(readed != app_.size)
-	{
-		ESP_LOGE(TAG, "[exec_app] Readed less than should [%u-%u]", readed, app_.size);
-		return app_status::file_list_error;
 	}
 
 	ret = elfLoader(app_buf, &env, "local_main", args);
 
-	free(app_buf);
+	return app_status::success;
+}
+
+static void app_task(void* arg)
+{
+	app_exec* app = static_cast<app_exec*>(arg);
+	elfLoader(app->elf_exec, &env, "local_main", app->arg);
+
+	delete app;
+	vTaskDelete(NULL);
+}
+
+app_status execute_app_as_task(const char* app_name,
+							int arg,
+							uint32_t stack_size,
+							int priority,
+							TaskHandle_t* handler /* = nullptr */) noexcept
+{
+	app_exec* app = new app_exec;
+	if(!app)
+	{
+		ESP_LOGE(TAG, "[exec_app] Failed allocate 'app_exec' [%s]", app_name);
+		return app_status::allocation_error;
+	}
+	app->arg = arg;
+
+	app_status status = read_app_file(app_name, &app->elf_exec);
+	if(status != app_status::success)
+	{
+		delete app;
+		return status;
+	}
+
+	ESP_LOGI(TAG, "[exec_app] Initiating app run task [%s]", app_name);
+	if(xTaskCreate(app_task, app_name, stack_size, app, priority, handler) != pdPASS)
+	{
+		delete app;
+		ESP_LOGE(TAG, "[exec_app] Failed to initiate app run task [%s]", app_name);
+		return app_status::allocation_error;
+	}
+
+	return app_status::success;
+}
+
+app_status read_app_file(const char* app_name, unsigned char** app_buf) noexcept
+{
+	if(!storage_is_mounted()) return app_status::not_mounted;
+
+	ESP_LOGI(TAG, "APP TASK to exec %s", app_name);
+
+	app app_;
+	app_status status = get_app(app_, app_name);
+	if(status != app_status::success)
+	{
+		ESP_LOGE(TAG, "[exec_app] get_app not found = %s", app_name);
+		return status;
+	}
+
+	char buffer[app_max_name_size + 10];
+	FILE* f = fopen(make_file_path(buffer, app_name), "rb");
+	if(!f)
+	{
+		ESP_LOGE(TAG, "[exec_app] Error opening file = %s", app_name);
+		return app_status::file_list_error;
+	}
+
+	*app_buf = (unsigned char*)malloc(sizeof(unsigned char) * app_.size);
+	if(!*app_buf)
+	{
+		fclose(f);
+		return app_status::allocation_error;
+	}
+
+	unsigned readed = fread(*app_buf, 1, app_.size, f);
+	fclose(f);
+	if(readed != app_.size)
+	{
+		free(*app_buf);
+		ESP_LOGE(TAG, "[exec_app] Readed less than should [%u-%u]", readed, app_.size);
+		return app_status::file_list_error;
+	}
 
 	return app_status::success;
 }

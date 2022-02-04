@@ -23,6 +23,9 @@ std::size_t send_app_list(Engine&,
 						CoAP::Message::type,
 						CoAP::Error& ec) noexcept;
 template<typename Engine>
+std::size_t send_job_info(Engine&, CoAP::Message::type, int index, CoAP::Error&) noexcept;
+
+template<typename Engine>
 void request_time(Engine& eng, CoAP::Error& ec) noexcept;
 
 #include "impl/send_impl.hpp"
