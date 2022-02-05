@@ -1,6 +1,12 @@
 #ifndef AGRO_MESH_JOB_HPP__
 #define AGRO_MESH_JOB_HPP__
 
-void init_job_task() noexcept;
+namespace Agro{
+namespace Jobs{
+
+void init_task() noexcept;
+
+}//Jobs
+}//Agro
 
 #endif /* AGRO_MESH_JOB_HPP__ */

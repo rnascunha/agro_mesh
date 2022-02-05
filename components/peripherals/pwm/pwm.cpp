@@ -1,5 +1,6 @@
 #include "pwm.h"
 #include "esp_err.h"
+#include "esp_idf_version.h"
 
 int PWM::init(uint32_t freq_hz, gpio_num_t gpio, ledc_timer_bit_t duty_resolution, uint32_t duty){
 	ledc_timer_config_t timer_conf = {
@@ -21,7 +22,10 @@ int PWM::init(uint32_t freq_hz, gpio_num_t gpio, ledc_timer_bit_t duty_resolutio
 		.intr_type = LEDC_INTR_DISABLE,
 		.timer_sel = timer,
 		.duty = duty,
-		.hpoint = 0
+		.hpoint = 0,
+#if ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(4, 3, 0)
+		.flags{}
+#endif /* ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0) */
 	};
 
 	if (ledc_channel_config(&ch_conf) != ESP_OK) {

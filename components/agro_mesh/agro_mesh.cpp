@@ -48,12 +48,11 @@ void init() noexcept
 #if CONFIG_ENABLE_DEVICE_CLOCK
 	device_clock.init();
 #endif /* CONFIG_ENABLE_DEVICE_CLOCK */
-
 	init_mesh();
 	init_coap_resources();
 
 #if CONFIG_ENABLE_JOBS_SUPPORT
-	//	init_job_task();
+	Agro::Jobs::init_task();
 #endif /* CONFIG_ENABLE_JOBS_SUPPORT */
 
 #ifdef CONFIG_ENABLE_HEARTBEAT_TASK

@@ -182,15 +182,20 @@ void init_mesh() noexcept
 	 */
 	/*  tcpip initialization */
 	esp_netif_init();
+
 	/*  event initialization */
 	esp_event_loop_create_default();
+
 	/*  create network interfaces for mesh (only station instance saved for further manipulation, soft AP instance ignored */
 	esp_netif_create_default_wifi_mesh_netifs(&netif_sta, NULL);
+
 	/*  wifi initialization */
 	wifi_init_config_t config = WIFI_INIT_CONFIG_DEFAULT();
+
 	esp_wifi_init(&config);
 	esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &ip_event_handler, NULL);
 	esp_wifi_set_storage(WIFI_STORAGE_FLASH);
+
 	esp_wifi_start();
 	/*  mesh initialization */
 	esp_mesh_init();
@@ -224,8 +229,4 @@ void init_mesh() noexcept
 	esp_mesh_set_config(&cfg);
 	/* mesh start */
 	esp_mesh_start();
-
-	ESP_LOGI(TAG, "mesh starts successfully, heap:%d, %s<%d>%s, ps:%d\n",  esp_get_minimum_free_heap_size(),
-	esp_mesh_is_root_fixed() ? "root fixed" : "root not fixed",
-	esp_mesh_get_topology(), esp_mesh_get_topology() ? "(chain)":"(tree)", esp_mesh_is_ps_enabled());
 }

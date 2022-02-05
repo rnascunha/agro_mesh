@@ -5,5 +5,5 @@ idf_component_register(SRCS restart_async.c
 							convert_char_type.c
 							datetime.cpp
                        INCLUDE_DIRS include
-                       REQUIRES )
+                       REQUIRES mbedtls)
                        

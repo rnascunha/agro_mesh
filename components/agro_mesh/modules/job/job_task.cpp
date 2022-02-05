@@ -16,19 +16,7 @@ const char* job_path = STORAGE_BASE_PATH "/job";
 
 Agro::Jobs::runner_type runner{job_path};
 
-template<typename Executor>
-static void print_job(Agro::Jobs::job<Executor> const& jb) noexcept
-{
-	DateTime dt = Agro::get_local_datetime();
-
-	printf("%02u:%02u:%02u %d|%02u:%02u-%02u:%02u dow=%d/pri:%u|%s\n",
-			dt.getHour(), dt.getMinute(), dt.getSecond(),
-			static_cast<int>(dt.dayOfWeek()),
-			jb.sch.time_before.hour, jb.sch.time_before.minute,
-			jb.sch.time_after.hour, jb.sch.time_after.minute,
-			static_cast<int>(jb.sch.dw), jb.priority,
-			jb.sch.is_active(Agro::get_local_time()) ? "active" : "not");
-}
+static void print_job(Agro::Jobs::job_type const& jb) noexcept;
 
 static void jobs(void*) noexcept
 {
@@ -60,10 +48,29 @@ static void jobs(void*) noexcept
 	vTaskDelete(NULL);
 }
 
-void init_job_task() noexcept
+namespace Agro{
+namespace Jobs{
+
+void init_task() noexcept
 {
 	if(storage_is_mounted())
 	{
 		xTaskCreate(&jobs, "jobs", 3072, NULL, 5, NULL);
 	}
+}
+
+}//Jobs
+}//Agro
+
+static void print_job(Agro::Jobs::job_type const& jb) noexcept
+{
+	DateTime dt = Agro::get_local_datetime();
+
+	printf("%02u:%02u:%02u %d|%02u:%02u-%02u:%02u dow=%d/pri:%u|%s\n",
+			dt.getHour(), dt.getMinute(), dt.getSecond(),
+			static_cast<int>(dt.dayOfWeek()),
+			jb.sch.time_before.hour, jb.sch.time_before.minute,
+			jb.sch.time_after.hour, jb.sch.time_after.minute,
+			static_cast<int>(jb.sch.dw), jb.priority,
+			jb.sch.is_active(Agro::get_local_time()) ? "active" : "not");
 }

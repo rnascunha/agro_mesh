@@ -2,7 +2,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "mbedtls/md.h"
+#include "helper/sha256.hpp"
 
 #include "../../net/helper.hpp"
 #include "../../net/messages/send.hpp"
@@ -45,34 +45,6 @@ static void fail_app_task(app_status status, TaskHandle_t handle = NULL) noexcep
 	app_task_handler = NULL;
 }
 
-static bool calculate_sha256hash(const char* file_name, std::uint8_t* result) noexcept
-{
-	mbedtls_md_context_t ctx;
-	mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256;
-	std::uint8_t payload[512];
-	std::size_t size;
-
-	mbedtls_md_init(&ctx);
-	mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(md_type), 0);
-	mbedtls_md_starts(&ctx);
-	FILE* f = fopen(file_name, "rb");
-	if(!f)
-	{
-		ESP_LOGE(TAG, "Calculate HASH file not found");
-		return false;
-	}
-	do{
-		size = fread(payload, sizeof(std::uint8_t), 512, f);
-		if(!size) break;
-		mbedtls_md_update(&ctx, (const unsigned char *) payload, size);
-	}while(true);
-	fclose(f);
-	mbedtls_md_finish(&ctx, result);
-	mbedtls_md_free(&ctx);
-
-	return true;
-}
-
 static void request_app_cb(void const* trans,
 		CoAP::Message::message const* response,
 		void*) noexcept
@@ -89,7 +61,6 @@ static void request_app_cb(void const* trans,
 		using namespace CoAP::Message;
 		if(CoAP::Message::is_error(response->mcode))
 		{
-//			CoAP::Debug::print_message_string(*response);
 			fail_app_task(app_status::server_response, app_task_handler);
 			return;
 		}
@@ -253,9 +224,9 @@ static void app_task(void*)
 	/**
 	 * Checking app hash
 	 */
-	std::uint8_t hash[32];
+	SHA256_hash hash;
 	calculate_sha256hash(app_transfer_data.file_name, hash);
-	if(std::memcmp(app_transfer_data.hash, hash, 32) != 0)
+	if(std::memcmp(app_transfer_data.hash, hash, SHA256_SIZE) != 0)
 	{
 		/**
 		 * Hash check failed

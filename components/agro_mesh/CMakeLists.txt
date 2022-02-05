@@ -29,7 +29,6 @@ if(CONFIG_ENABLE_OTA_SUPPORT)
 endif()
 
 if(CONFIG_ENABLE_APP_SUPPORT)
-	message(STATUS "APP SUPPORTED!")
 	list(APPEND AGRO_SRC modules/app/app.cpp 
 							modules/app/task.cpp 
 							modules/app/executor.cpp 
