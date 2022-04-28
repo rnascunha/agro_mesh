@@ -13,18 +13,18 @@ static void get_rtc_time_handler(engine::message const& request,
 	ESP_LOGI(RESOURCE_TAG, "Called get rtc time handler");
 
 	CoAP::Message::Option::option op;
-	CoAP::Message::content_format accept_format = CoAP::Message::accept::text_plain;
+	CoAP::Message::accept accept_format{CoAP::Message::accept::text_plain};
 	if(CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::accept))
 	{
-		accept_format = static_cast<CoAP::Message::content_format>(CoAP::Message::Option::parse_unsigned(op));
+		accept_format = static_cast<CoAP::Message::accept>(CoAP::Message::Option::parse_unsigned(op));
 	}
 
 	/**
 	 * Making the payload
 	 */
-	if(op && accept_format == CoAP::Message::content_format::application_octet_stream)
+	if(op && accept_format == CoAP::Message::accept::application_octet_stream)
 	{
-		CoAP::Message::content_format format = CoAP::Message::content_format::application_octet_stream;
+		CoAP::Message::content_format format{CoAP::Message::content_format::application_octet_stream};
 		CoAP::Message::Option::node content{format};
 		std::uint32_t time = device_clock.get_time();//dt.getUnixTime();
 
@@ -99,18 +99,18 @@ static void get_fuse_handler(engine::message const& request,
 	ESP_LOGI(RESOURCE_TAG, "Called get fuse time handler");
 
 	CoAP::Message::Option::option op;
-	CoAP::Message::content_format accept_format = CoAP::Message::accept::text_plain;
+	CoAP::Message::accept accept_format = CoAP::Message::accept::text_plain;
 	if(CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::accept))
 	{
-		accept_format = static_cast<CoAP::Message::content_format>(CoAP::Message::Option::parse_unsigned(op));
+		accept_format = static_cast<CoAP::Message::accept>(CoAP::Message::Option::parse_unsigned(op));
 	}
 
 	/**
 	 * Making the payload
 	 */
-	if(op && accept_format == CoAP::Message::content_format::application_octet_stream)
+	if(op && accept_format == CoAP::Message::accept::application_octet_stream)
 	{
-		CoAP::Message::content_format format = CoAP::Message::content_format::application_octet_stream;
+		CoAP::Message::content_format format{CoAP::Message::content_format::application_octet_stream};
 		CoAP::Message::Option::node content{format};
 		Agro::fuse_type fuse = device_clock.fuse();
 
@@ -127,7 +127,7 @@ static void get_fuse_handler(engine::message const& request,
 	{
 		char buffer[20];
 		snprintf(buffer, 20, "%d", device_clock.fuse());
-		CoAP::Message::content_format format = CoAP::Message::content_format::text_plain;
+		CoAP::Message::content_format format{CoAP::Message::content_format::text_plain};
 		CoAP::Message::Option::node content{format};
 
 		/**
@@ -156,7 +156,7 @@ static void put_fuse_handler(engine::message const& request,
 	}
 
 	CoAP::Message::Option::option op;
-	CoAP::Message::content_format content_format = CoAP::Message::content_format::text_plain;
+	CoAP::Message::content_format content_format{CoAP::Message::content_format::text_plain};
 	if(CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::content_format))
 	{
 		content_format = static_cast<CoAP::Message::content_format>(CoAP::Message::Option::parse_unsigned(op));

@@ -17,8 +17,8 @@ struct Job_Config{
 };
 
 using executor_type = Executor_App;
-using job_type = Agro::Jobs::job<executor_type>;
-using runner_type = Agro::Jobs::run<executor_type, Agro::Jobs::Job_Config>;
+using job_type = job<executor_type>;
+using runner_type = run<executor_type, Job_Config>;
 
 }//Agro
 }//Jobs

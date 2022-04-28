@@ -11,6 +11,11 @@
 
 Executor_App::Executor_App(){}
 
+Executor_App::~Executor_App()
+{
+	finish();
+}
+
 bool Executor_App::read(FILE* handler) noexcept
 {
 	std::size_t readed = fread(&arg_, 1, sizeof(int), handler);
@@ -34,8 +39,11 @@ void Executor_App::init() noexcept
 
 void Executor_App::finish() noexcept
 {
-	free(elf_);
-	elf_ = nullptr;
+	if(elf_)
+	{
+		free(elf_);
+		elf_ = nullptr;
+	}
 }
 
 void Executor_App::execute() noexcept

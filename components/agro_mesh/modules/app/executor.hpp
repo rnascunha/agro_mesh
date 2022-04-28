@@ -17,6 +17,8 @@ class Executor_App : public Executor{
 		virtual void execute() noexcept override;
 
 		Executor_App& operator=(Executor_App&&) noexcept;
+
+		~Executor_App();
 	private:
 		int 			arg_ = 0;
 		unsigned char*	elf_ = nullptr;
