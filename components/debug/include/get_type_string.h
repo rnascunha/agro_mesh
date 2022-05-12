@@ -2,7 +2,8 @@
 #define GET_TYPE_STRING_H__
 
 #include "esp_wifi.h"
-#include "esp_system.h"
+//#include "esp_system.h"
+#include "esp_chip_info.h"
 //#include "ir.h"
 
 #include <stdint.h>

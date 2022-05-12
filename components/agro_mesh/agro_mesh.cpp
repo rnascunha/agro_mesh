@@ -33,7 +33,7 @@ static void heartbeat(void*)
 	while(true)
 	{
 		gpio_set_level(BLINK_LED, !gpio_get_level(BLINK_LED));
-		vTaskDelay(interval_blink / portTICK_RATE_MS);
+		vTaskDelay(interval_blink / portTICK_PERIOD_MS);
 	}
 	vTaskDelete(NULL);
 }

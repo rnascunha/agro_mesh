@@ -15,7 +15,7 @@
 
 #include "../types.hpp"
 
-extern xQueueHandle send_data_queue;
+extern QueueHandle_t send_data_queue;
 static bool init_packets_sended = false;
 
 static TaskHandle_t send_task = NULL;

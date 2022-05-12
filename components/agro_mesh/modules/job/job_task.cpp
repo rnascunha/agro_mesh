@@ -43,7 +43,7 @@ static void jobs(void*) noexcept
 				Agro::send_job_info(CoAP::Message::type::nonconfirmable, index, ec);
 			}
 		}
-		vTaskDelay(Agro::Jobs::runner_type::time_check / portTICK_RATE_MS);
+		vTaskDelay(Agro::Jobs::runner_type::time_check / portTICK_PERIOD_MS);
 	}while(true);
 	vTaskDelete(NULL);
 }

@@ -54,7 +54,7 @@ int I2C_Master::write(uint8_t slave_addr, uint8_t reg, uint8_t* data, size_t len
 	i2c_master_write_byte(cmd, reg, ack_check);
 	i2c_master_write(cmd, data, len, ack_check);
 	i2c_master_stop(cmd);
-	ret = i2c_master_cmd_begin(port, cmd, I2C_COMMAND_WAIT_MS / portTICK_RATE_MS);
+	ret = i2c_master_cmd_begin(port, cmd, I2C_COMMAND_WAIT_MS / portTICK_PERIOD_MS);
 	i2c_cmd_link_delete(cmd);
 
 	if (ret != ESP_OK) {
@@ -97,7 +97,7 @@ int I2C_Master::read(uint8_t slave_addr, uint8_t reg, uint8_t* data, size_t len,
 	i2c_master_write_byte(cmd, slave_addr << 1 | I2C_MASTER_WRITE, ack_check);
 	i2c_master_write_byte(cmd, reg, ack_check);
 	i2c_master_stop(cmd);
-	ret = i2c_master_cmd_begin(port, cmd, I2C_COMMAND_WAIT_MS / portTICK_RATE_MS);
+	ret = i2c_master_cmd_begin(port, cmd, I2C_COMMAND_WAIT_MS / portTICK_PERIOD_MS);
 	i2c_cmd_link_delete(cmd);
 
 	if (ret != ESP_OK) {
@@ -112,7 +112,7 @@ int I2C_Master::read(uint8_t slave_addr, uint8_t reg, uint8_t* data, size_t len,
 	}
 	i2c_master_read_byte(cmd, data + len - 1, I2C_MASTER_NACK);
 	i2c_master_stop(cmd);
-	ret = i2c_master_cmd_begin(port, cmd, I2C_COMMAND_WAIT_MS / portTICK_RATE_MS);
+	ret = i2c_master_cmd_begin(port, cmd, I2C_COMMAND_WAIT_MS / portTICK_PERIOD_MS);
 	i2c_cmd_link_delete(cmd);
 
 	if(ret != ESP_OK){
@@ -130,7 +130,7 @@ int I2C_Master::read(uint8_t slave_addr, uint8_t reg, uint8_t* data, bool ack_ch
 	i2c_master_write_byte(cmd, slave_addr << 1 | I2C_MASTER_WRITE, ack_check);
 	i2c_master_write_byte(cmd, reg, ack_check);
 	i2c_master_stop(cmd);
-	ret = i2c_master_cmd_begin(port, cmd, I2C_COMMAND_WAIT_MS / portTICK_RATE_MS);
+	ret = i2c_master_cmd_begin(port, cmd, I2C_COMMAND_WAIT_MS / portTICK_PERIOD_MS);
 	i2c_cmd_link_delete(cmd);
 
 	if (ret != ESP_OK) {
@@ -142,7 +142,7 @@ int I2C_Master::read(uint8_t slave_addr, uint8_t reg, uint8_t* data, bool ack_ch
 	i2c_master_write_byte(cmd, slave_addr << 1 | I2C_MASTER_READ, ack_check);
 	i2c_master_read_byte(cmd, data, I2C_MASTER_NACK);
 	i2c_master_stop(cmd);
-	ret = i2c_master_cmd_begin(port, cmd, I2C_COMMAND_WAIT_MS / portTICK_RATE_MS);
+	ret = i2c_master_cmd_begin(port, cmd, I2C_COMMAND_WAIT_MS / portTICK_PERIOD_MS);
 	i2c_cmd_link_delete(cmd);
 
 	if(ret != ESP_OK){
