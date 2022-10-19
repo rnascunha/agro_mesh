@@ -18,7 +18,8 @@ set(REQUIRE_LIST coap-te
                     nvs_flash
                     app_update
                     elfloader
-                    efuse)
+                    efuse
+					esp_timer)
 
 ######################################
 # Modules

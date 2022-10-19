@@ -38,3 +38,5 @@ build/
 sdkconfig
 sdkconfig.old
 /Debug/
+.vscode
+.editorconfig
