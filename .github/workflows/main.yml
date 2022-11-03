@@ -5,7 +5,10 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    container: rnascunha/agro_container:v5.0
+    container: 
+      image: rnascunha/agro_container:v5.0
+      env:
+        IDF_PATH: /opt/esp/idf
     steps:
       - name: Checking out repostitory
         uses: actions/checkout@v2
@@ -13,7 +16,8 @@ jobs:
           submodules: recursive
       - name: Prepare
         run: |
-           cp sdkconfig-action sdkconfig
-      - name: Building
+          cp sdkconfig-action sdkconfig
+      - name: Exporting IDF & Building
         run: |
+          . ${IDF_PATH}/export.sh
           idf.py build
