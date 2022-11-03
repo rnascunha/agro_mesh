@@ -22,7 +22,9 @@ bool mount_storage() noexcept
 			.max_files = 4,
 			.allocation_unit_size = CONFIG_WL_SECTOR_SIZE
 	};
-	esp_err_t err = esp_vfs_fat_spiflash_mount(base_path, "storage", &mount_config, &s_wl_handle);
+	//esp_err_t err = esp_vfs_fat_spiflash_mount(base_path, "storage", &mount_config, &s_wl_handle);
+	esp_err_t err = esp_vfs_fat_spiflash_mount_rw_wl(base_path, "storage", &mount_config, &s_wl_handle);
+
 	if (err != ESP_OK) {
 		ESP_LOGE(TAG, "Failed to mount FATFS (%s)", esp_err_to_name(err));
 		return false;
@@ -34,7 +36,8 @@ bool unmount_storage() noexcept
 {
 	if(s_wl_handle != WL_INVALID_HANDLE)
 	{
-		esp_err_t err = esp_vfs_fat_spiflash_unmount(base_path, s_wl_handle);
+//		esp_err_t err = esp_vfs_fat_spiflash_unmount(base_path, s_wl_handle);
+		esp_err_t err = esp_vfs_fat_spiflash_unmount_rw_wl(base_path, s_wl_handle);
 		s_wl_handle = WL_INVALID_HANDLE;
 		return err == ESP_OK;
 	}

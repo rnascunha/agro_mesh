@@ -57,7 +57,7 @@ void sensor_pressure_task(void*) noexcept
 
 	while(true)
 	{
-		vTaskDelay((60 * 1000) / portTICK_RATE_MS);
+		vTaskDelay((60 * 1000) / portTICK_PERIOD_MS);
 		if(!Agro::is_networking())
 		{
 			continue;

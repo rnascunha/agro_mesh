@@ -1,6 +1,9 @@
 #include <cstdint>
 #include "esp_log.h"
 
+//#include "freertos/FreeRTOS.h"
+//#include "freertos/queue.h"
+
 #include "gpio.h"
 
 #include "i2c_master.h"
@@ -57,7 +60,7 @@ extern Agro::RTC_Time device_clock;
 std::uint8_t temp_sensor_count = false;
 bool pressure_present = false;
 
-xQueueHandle send_data_queue = NULL;
+QueueHandle_t send_data_queue = NULL;
 
 static void IRAM_ATTR gpio_input_interrput(void*)
 {

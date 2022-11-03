@@ -11,7 +11,7 @@
 
 #define TAG 	"TASK"
 
-extern xQueueHandle send_data_queue;
+extern QueueHandle_t send_data_queue;
 
 /**
  * Send periodic data
@@ -30,9 +30,9 @@ void coap_send_main(void* pv) noexcept
 		{
 			ESP_LOGI(TAG, "Sending time request...");
 		}
-		vTaskDelay((5 * 60 * 1000) / portTICK_RATE_MS);
+		vTaskDelay((5 * 60 * 1000) / portTICK_PERIOD_MS);
 	}
-	xTaskHandle* handle = static_cast<xTaskHandle*>(pv);
+	TaskHandle_t* handle = static_cast<TaskHandle_t*>(pv);
 	*handle = NULL;
 	vTaskDelete(NULL);
 }
@@ -60,7 +60,7 @@ void send_async_data(void* pv) noexcept
 			}
 		}
 	}
-	xTaskHandle* handle = static_cast<xTaskHandle*>(pv);
+	TaskHandle_t* handle = static_cast<TaskHandle_t*>(pv);
 	*handle = NULL;
 	vTaskDelete(NULL);
 }

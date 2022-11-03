@@ -5,10 +5,10 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#         idf-version: [release-v4.4, release-v4.3]
+    container: 
+      image: rnascunha/agro_container:v5.0
+      env:
+        IDF_PATH: /opt/esp/idf
     steps:
       - name: Checking out repostitory
         uses: actions/checkout@v2
@@ -16,6 +16,8 @@ jobs:
           submodules: recursive
       - name: Prepare
         run: |
-           cp sdkconfig-action sdkconfig
-      - name: Build ESP32 latest
-        uses: espressif/esp-idf-ci-action@latest
+          cp sdkconfig-action sdkconfig
+      - name: Exporting IDF & Building
+        run: |
+          . ${IDF_PATH}/export.sh
+          idf.py build

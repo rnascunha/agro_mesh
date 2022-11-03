@@ -17,7 +17,9 @@ set(REQUIRE_LIST coap-te
                     ds3231
                     nvs_flash
                     app_update
-                    elfloader)
+                    elfloader
+                    efuse
+					esp_timer)
 
 ######################################
 # Modules

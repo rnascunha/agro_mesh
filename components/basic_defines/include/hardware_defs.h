@@ -12,7 +12,8 @@
 //#define disable_interrupts()
 //#define enable_interrupts()
 
-#define delay_ms(x)				vTaskDelay((x) / portTICK_RATE_MS)
+//#define delay_ms(x)				vTaskDelay((x) / portTICK_RATE_MS)
+#define delay_ms(x)				vTaskDelay((x) / portTICK_PERIOD_MS)
 #define delay_us(x)				ets_delay_us(x)
 
 //#define PROGMEM
