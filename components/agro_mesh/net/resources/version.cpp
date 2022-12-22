@@ -14,7 +14,7 @@ static void get_version_handler(engine::message const&,
 	/**
 	 * Making the payload
 	 */
-	const esp_app_desc_t * desc = esp_ota_get_app_description();
+	const esp_app_desc_t * desc = esp_app_get_description();
 
 	char buffer[50];
 	snprintf(buffer, 50, "%s|%s", desc->version, Agro::hw_version);

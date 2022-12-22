@@ -1,6 +1,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/task.h"
+#include "inttypes.h"
 
 #include "esp_log.h"
 
@@ -12,7 +13,7 @@ void print_freertos_tasks_name(){
 
 
 	num_tasks = uxTaskGetSystemState(buffer, 20, &time);
-	ESP_LOGI(TAG, "FreeRTOS Tasks Names[%u]:", num_tasks);
+	ESP_LOGI(TAG, "FreeRTOS Tasks Names[%"PRIu32"]:", num_tasks);
 
 	for(uint8_t i = 0; i < num_tasks; i++){
 		ESP_LOGI(TAG, "%u: %s", i, buffer[i].pcTaskName);

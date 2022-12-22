@@ -9,6 +9,8 @@ union sensor_value{
 	sensor_value(unsigned);
 	sensor_value(float);
 	sensor_value(uint8_t const*);
+  constexpr
+  sensor_value(const sensor_value&) noexcept = default;
 
 	unsigned	uint_v;
 	int		 	int_v;
@@ -45,6 +47,7 @@ class Sensor_Builder{
 		size_t	capacity_;
 		size_t size_ = 0;
 
+    constexpr
 		bool check_addtion() const noexcept;
 };
 

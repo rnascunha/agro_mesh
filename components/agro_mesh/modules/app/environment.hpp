@@ -4,7 +4,7 @@
 #include "loader.h"
 #include "driver/gpio.h"
 
-static constexpr const ELFLoaderSymbol_t exports[] = {
+static const ELFLoaderSymbol_t exports[] = {
     { "puts", (void*) puts },
     { "printf", (void*) printf },
 	{ "gpio_set_level", (void*)gpio_set_level}

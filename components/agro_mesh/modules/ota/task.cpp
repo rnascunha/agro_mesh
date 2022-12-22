@@ -11,6 +11,7 @@
 #include "esp_ota_ops.h"
 #include "esp_flash_partitions.h"
 #include "esp_partition.h"
+#include "esp_app_format.h"
 #include "driver/gpio.h"
 #include "errno.h"
 
@@ -320,11 +321,11 @@ void ota_task(void*)
 
 	if (configured != running)
 	{
-		ESP_LOGW(TAG, "Configured OTA boot partition at offset 0x%08x, but running from offset 0x%08x",
+		ESP_LOGW(TAG, "Configured OTA boot partition at offset 0x%08" PRIu32 ", but running from offset 0x%08" PRIu32,
 				 configured->address, running->address);
 		ESP_LOGW(TAG, "(This can happen if either the OTA boot data or preferred boot image become corrupted somehow.)");
 	}
-	ESP_LOGI(TAG, "Running partition type %d subtype %d (offset 0x%08x)",
+	ESP_LOGI(TAG, "Running partition type %d subtype %d (offset 0x%08" PRIu32 ")",
 			 running->type, running->subtype, running->address);
 
 	ota_data.update_partition = esp_ota_get_next_update_partition(NULL);
@@ -334,7 +335,7 @@ void ota_task(void*)
 		fail_ota_task(ota_status::update_partition_not_found);
 		return;
 	}
-	ESP_LOGI(TAG, "Writing to partition subtype %d at offset 0x%x",
+	ESP_LOGI(TAG, "Writing to partition subtype %d at offset 0x%" PRIu32,
 			 ota_data.update_partition->subtype, ota_data.update_partition->address);
 
 	//Making dummy endpoint

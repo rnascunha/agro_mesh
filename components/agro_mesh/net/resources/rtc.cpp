@@ -40,7 +40,7 @@ static void get_rtc_time_handler(engine::message const& request,
 	else
 	{
 		char buffer[20];
-		snprintf(buffer, 20, "%u", device_clock.get_time()/*dt.getUnixTime()*/);
+		snprintf(buffer, 20, "%lu", device_clock.get_time()/*dt.getUnixTime()*/);
 		CoAP::Message::content_format format = CoAP::Message::content_format::text_plain;
 		CoAP::Message::Option::node content{format};
 

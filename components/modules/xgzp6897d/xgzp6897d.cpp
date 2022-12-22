@@ -159,7 +159,7 @@ int XGZP6897D::read_temperature(double& temp) noexcept
 
 int XGZP6897D::read_pressure(double& pressure, unsigned k) noexcept
 {
-	uint32_t pressure_adc;
+	uint32_t pressure_adc = 0;
 	int ret = read_adc_pressure(pressure_adc);
 	if(ret != I2C_ERR_OK)
 	{

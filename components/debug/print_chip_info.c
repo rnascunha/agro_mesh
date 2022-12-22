@@ -1,6 +1,7 @@
 
 #include "esp_log.h"
 #include "esp_system.h"
+#include "inttypes.h"
 
 #include "debug_defs.h"
 #include "get_type_string.h"
@@ -17,13 +18,13 @@ void print_chip_info(){
 	esp_chip_info(&info);
 	ESP_LOGI(TAG, "Chip infod:"
 			"\n\tcores: %u"
-			"\n\tfeatures: 0x%08X"
+			"\n\tfeatures: 0x%08"PRIu32
 			"\n\t\tEmb flash: %s"
 			"\n\t\tWifi BNG: %s"
 			"\n\t\tBLE: %s"
 			"\n\t\tBT: %s"
 			"\n\tmodel: %s"
-			"\n\trevision: %u",
+			"\n\trevision: %"PRIu16,
 				info.cores,
 				info.features,
 				info.features & CHIP_FEATURE_EMB_FLASH ? "yes" : "no",

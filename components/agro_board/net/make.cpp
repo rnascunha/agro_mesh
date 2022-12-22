@@ -12,7 +12,7 @@ extern Agro::RTC_Time device_clock;
 
 std::size_t make_board_config(void* buffer, std::size_t buffer_len) noexcept
 {
-	const esp_app_desc_t * desc = esp_ota_get_app_description();
+	const esp_app_desc_t * desc = esp_app_get_description();
 
 	std::size_t fw_size = std::strlen(desc->version),
 				hw_size = std::strlen(Agro::hw_version);

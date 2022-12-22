@@ -11,7 +11,7 @@ idf_component_register(SRCS print_types_info.c
 #							./print_time_info.cpp 
 #							./get_type_time_string.cpp
                        INCLUDE_DIRS include                       # Edit following two lines to set component requirements (see docs)
-                       REQUIRES spi_flash 
+                       REQUIRES spi_flash esp_wifi
 #                       			ir 
 #                       			coap 
 #                       			bootloader_support 

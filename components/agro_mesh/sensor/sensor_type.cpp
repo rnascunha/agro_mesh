@@ -82,6 +82,7 @@ bool Sensor_Builder::add(uint32_t type, uint8_t index, sensor_value const& v) no
 	return add({type, index, v});
 }
 
+constexpr
 bool Sensor_Builder::check_addtion() const noexcept
 {
 	return !((sizeof(sensor_type) + size_) > capacity_);
